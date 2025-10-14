@@ -9,6 +9,8 @@ const Payment = () => {
   const [processingFee, setProcessingFee] = useState(0);
   const [loanAmount, setLoanAmount] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [transactionCode, setTransactionCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -37,16 +39,39 @@ const Payment = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleConfirmPayment = () => {
-    toast({
-      title: "Payment Confirmation",
-      description: "Thank you! Your loan will be disbursed once payment is verified.",
-    });
+  const handleVerifyPayment = async () => {
+    if (!transactionCode.trim()) {
+      toast({
+        title: "Transaction Code Required",
+        description: "Please enter your M-Pesa transaction code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (transactionCode.length < 8) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter a valid M-Pesa transaction code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsVerifying(true);
     
-    // In a real app, this would verify the payment
+    // Simulate payment verification (in real app, this would call a backend API)
     setTimeout(() => {
-      navigate("/");
-    }, 3000);
+      setIsVerifying(false);
+      toast({
+        title: "Payment Verified! 🎉",
+        description: "Your loan is being disbursed to your M-Pesa number now.",
+      });
+      
+      setTimeout(() => {
+        navigate("/");
+      }, 3000);
+    }, 2000);
   };
 
   return (
@@ -148,21 +173,44 @@ const Payment = () => {
               </div>
             </div>
 
+            {/* Transaction Code Input */}
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="transactionCode" className="block text-sm font-semibold mb-2">
+                  M-Pesa Transaction Code
+                </label>
+                <input
+                  id="transactionCode"
+                  type="text"
+                  placeholder="e.g., QGH7K2M3P9"
+                  value={transactionCode}
+                  onChange={(e) => setTransactionCode(e.target.value.toUpperCase())}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-primary/20 focus:border-primary focus:outline-none transition-colors bg-card text-foreground placeholder:text-muted-foreground"
+                  maxLength={15}
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Enter the transaction code from your M-Pesa confirmation SMS
+                </p>
+              </div>
+            </div>
+
             {/* Action Buttons */}
             <div className="space-y-3">
               <Button 
                 variant="cute" 
                 size="lg"
                 className="w-full"
-                onClick={handleConfirmPayment}
+                onClick={handleVerifyPayment}
+                disabled={isVerifying}
               >
-                I Have Made Payment
+                {isVerifying ? "Verifying Payment..." : "Verify Payment & Get Loan"}
               </Button>
               
               <Button 
                 variant="outline"
                 className="w-full"
                 onClick={() => navigate("/loan-selection")}
+                disabled={isVerifying}
               >
                 Go Back
               </Button>
