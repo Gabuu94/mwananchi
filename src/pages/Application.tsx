@@ -1,0 +1,259 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useNavigate } from "react-router-dom";
+import { FileText, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+const Application = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    idNumber: "",
+    whatsappNumber: "",
+    nextOfKinName: "",
+    nextOfKinContact: "",
+    incomeLevel: "",
+    occupation: "",
+    contactPersonName: "",
+    contactPersonPhone: "",
+    loanReason: "",
+  });
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.fullName || !formData.idNumber || !formData.whatsappNumber || 
+        !formData.nextOfKinName || !formData.nextOfKinContact || !formData.incomeLevel || 
+        !formData.occupation || !formData.contactPersonName || !formData.contactPersonPhone) {
+      toast({
+        title: "Incomplete Form",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Store application data
+    localStorage.setItem("helaApplication", JSON.stringify(formData));
+
+    // Simulate loan limit calculation
+    setTimeout(() => {
+      // Generate random loan limit between 5000 and 50000
+      const loanLimit = Math.floor(Math.random() * (50000 - 5000 + 1)) + 5000;
+      localStorage.setItem("helaLoanLimit", loanLimit.toString());
+      
+      setIsLoading(false);
+      navigate("/loan-limit");
+    }, 20000); // 20 seconds as specified
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-soft py-8 px-4">
+      <div className="container max-w-2xl mx-auto">
+        <Card className="shadow-card">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Loan Application</CardTitle>
+            <CardDescription>
+              Fill in your details to apply for a loan
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Personal Information */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Personal Information</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name *</Label>
+                  <Input
+                    id="fullName"
+                    placeholder="John Doe"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="idNumber">ID Number *</Label>
+                  <Input
+                    id="idNumber"
+                    placeholder="12345678"
+                    value={formData.idNumber}
+                    onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="whatsappNumber">WhatsApp Number *</Label>
+                  <Input
+                    id="whatsappNumber"
+                    type="tel"
+                    placeholder="0712345678"
+                    value={formData.whatsappNumber}
+                    onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Next of Kin */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Next of Kin</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="nextOfKinName">Full Name *</Label>
+                  <Input
+                    id="nextOfKinName"
+                    placeholder="Jane Doe"
+                    value={formData.nextOfKinName}
+                    onChange={(e) => setFormData({ ...formData, nextOfKinName: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="nextOfKinContact">Contact Number *</Label>
+                  <Input
+                    id="nextOfKinContact"
+                    type="tel"
+                    placeholder="0723456789"
+                    value={formData.nextOfKinContact}
+                    onChange={(e) => setFormData({ ...formData, nextOfKinContact: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Financial Information */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Financial Information</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="incomeLevel">Income Level *</Label>
+                  <Select 
+                    value={formData.incomeLevel}
+                    onValueChange={(value) => setFormData({ ...formData, incomeLevel: value })}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select income range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="below-20k">Below KES 20,000</SelectItem>
+                      <SelectItem value="20k-50k">KES 20,000 - 50,000</SelectItem>
+                      <SelectItem value="50k-100k">KES 50,000 - 100,000</SelectItem>
+                      <SelectItem value="above-100k">Above KES 100,000</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="occupation">Occupation *</Label>
+                  <Input
+                    id="occupation"
+                    placeholder="e.g., Teacher, Business Owner"
+                    value={formData.occupation}
+                    onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Contact Person */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Contact Person</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="contactPersonName">Name *</Label>
+                  <Input
+                    id="contactPersonName"
+                    placeholder="Reference name"
+                    value={formData.contactPersonName}
+                    onChange={(e) => setFormData({ ...formData, contactPersonName: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contactPersonPhone">Phone Number *</Label>
+                  <Input
+                    id="contactPersonPhone"
+                    type="tel"
+                    placeholder="0734567890"
+                    value={formData.contactPersonPhone}
+                    onChange={(e) => setFormData({ ...formData, contactPersonPhone: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Optional */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Additional Information</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="loanReason">Reason for Loan (Optional)</Label>
+                  <Textarea
+                    id="loanReason"
+                    placeholder="Tell us why you need this loan..."
+                    value={formData.loanReason}
+                    onChange={(e) => setFormData({ ...formData, loanReason: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <Button 
+                type="submit" 
+                variant="cute" 
+                className="w-full" 
+                size="lg"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Calculating Your Loan Limit...
+                  </>
+                ) : (
+                  "Submit Application"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {isLoading && (
+          <Card className="mt-6 bg-primary/5 border-primary/20">
+            <CardContent className="py-8 text-center">
+              <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-lg font-semibold text-primary">
+                Please wait a few moments while we calculate your loan limit...
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                We're analyzing your information to provide you with the best loan offer
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Application;
