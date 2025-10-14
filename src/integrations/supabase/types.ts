@@ -14,7 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      loan_applications: {
+        Row: {
+          contact_person_name: string
+          contact_person_phone: string
+          created_at: string | null
+          employment_status: string
+          full_name: string
+          id: string
+          id_number: string
+          income_level: string
+          loan_limit: number
+          loan_reason: string | null
+          next_of_kin_contact: string
+          next_of_kin_name: string
+          occupation: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          whatsapp_number: string
+        }
+        Insert: {
+          contact_person_name: string
+          contact_person_phone: string
+          created_at?: string | null
+          employment_status: string
+          full_name: string
+          id?: string
+          id_number: string
+          income_level: string
+          loan_limit: number
+          loan_reason?: string | null
+          next_of_kin_contact: string
+          next_of_kin_name: string
+          occupation: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          whatsapp_number: string
+        }
+        Update: {
+          contact_person_name?: string
+          contact_person_phone?: string
+          created_at?: string | null
+          employment_status?: string
+          full_name?: string
+          id?: string
+          id_number?: string
+          income_level?: string
+          loan_limit?: number
+          loan_reason?: string | null
+          next_of_kin_contact?: string
+          next_of_kin_name?: string
+          occupation?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
+      loan_disbursements: {
+        Row: {
+          application_id: string
+          created_at: string | null
+          disbursed: boolean | null
+          id: string
+          loan_amount: number
+          payment_verified: boolean | null
+          processing_fee: number
+          transaction_code: string
+          updated_at: string | null
+        }
+        Insert: {
+          application_id: string
+          created_at?: string | null
+          disbursed?: boolean | null
+          id?: string
+          loan_amount: number
+          payment_verified?: boolean | null
+          processing_fee: number
+          transaction_code: string
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string
+          created_at?: string | null
+          disbursed?: boolean | null
+          id?: string
+          loan_amount?: number
+          payment_verified?: boolean | null
+          processing_fee?: number
+          transaction_code?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_disbursements_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "loan_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
