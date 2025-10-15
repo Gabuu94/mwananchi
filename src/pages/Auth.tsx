@@ -86,10 +86,10 @@ const Auth = () => {
     }
 
     try {
+      // Use phone as email (phone@helaloans.com)
+      const email = `${formData.phoneNumber}@helaloans.com`;
+      
       if (isLogin) {
-        // Use phone as email (phone@helaloans.com)
-        const email = `${formData.phoneNumber}@helaloans.com`;
-        
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password: formData.password,
@@ -104,11 +104,16 @@ const Auth = () => {
         
         navigate("/terms");
       } else {
-        // Send OTP to phone number for signup
+        // Send OTP to email for signup
         const { error } = await supabase.auth.signInWithOtp({
-          phone: formData.phoneNumber.startsWith('0') 
-            ? '+254' + formData.phoneNumber.slice(1) 
-            : '+' + formData.phoneNumber,
+          email,
+          options: {
+            data: {
+              full_name: formData.fullName,
+              id_number: formData.idNumber,
+              phone: formData.phoneNumber,
+            }
+          }
         });
 
         if (error) throw error;
@@ -116,7 +121,7 @@ const Auth = () => {
         setShowOtpInput(true);
         toast({
           title: "OTP Sent",
-          description: "Please check your phone for the verification code",
+          description: "Please check for the verification code",
         });
       }
     } catch (error: any) {
@@ -143,29 +148,18 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      const email = `${formData.phoneNumber}@helaloans.com`;
+      
       // Verify OTP
       const { error: verifyError } = await supabase.auth.verifyOtp({
-        phone: formData.phoneNumber.startsWith('0') 
-          ? '+254' + formData.phoneNumber.slice(1) 
-          : '+' + formData.phoneNumber,
+        email,
         token: otp,
-        type: 'sms',
+        type: 'email',
       });
 
       if (verifyError) throw verifyError;
 
-      // After OTP verification, update user metadata with additional info
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          full_name: formData.fullName,
-          id_number: formData.idNumber,
-          phone: formData.phoneNumber,
-        }
-      });
-
-      if (updateError) throw updateError;
-
-      // Set password
+      // Set password after verification
       const { error: passwordError } = await supabase.auth.updateUser({
         password: formData.password,
       });
@@ -215,7 +209,7 @@ const Auth = () => {
               <div className="space-y-2 text-center">
                 <Label>Enter Verification Code</Label>
                 <p className="text-sm text-muted-foreground">
-                  We sent a 6-digit code to {formData.phoneNumber}
+                  We sent a 6-digit code for phone number {formData.phoneNumber}
                 </p>
               </div>
               
