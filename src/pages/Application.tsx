@@ -122,9 +122,15 @@ const Application = () => {
                   <Label htmlFor="idNumber">ID Number *</Label>
                   <Input
                     id="idNumber"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="12345678"
                     value={formData.idNumber}
-                    onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setFormData({ ...formData, idNumber: value });
+                    }}
                     required
                   />
                 </div>
@@ -134,9 +140,14 @@ const Application = () => {
                   <Input
                     id="whatsappNumber"
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="0712345678"
                     value={formData.whatsappNumber}
-                    onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setFormData({ ...formData, whatsappNumber: value });
+                    }}
                     required
                   />
                 </div>
@@ -162,9 +173,14 @@ const Application = () => {
                   <Input
                     id="nextOfKinContact"
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="0723456789"
                     value={formData.nextOfKinContact}
-                    onChange={(e) => setFormData({ ...formData, nextOfKinContact: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setFormData({ ...formData, nextOfKinContact: value });
+                    }}
                     required
                   />
                 </div>
@@ -243,9 +259,14 @@ const Application = () => {
                   <Input
                     id="contactPersonPhone"
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="0734567890"
                     value={formData.contactPersonPhone}
-                    onChange={(e) => setFormData({ ...formData, contactPersonPhone: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setFormData({ ...formData, contactPersonPhone: value });
+                    }}
                     required
                   />
                 </div>
