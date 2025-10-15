@@ -4,12 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn, UserPlus, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import helaLogo from "@/assets/hela-logo.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     idNumber: "",
@@ -19,35 +21,87 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    // Basic validation
     if (!formData.phoneNumber || !formData.password) {
       toast({
-        title: "Error",
-        description: "Please fill in all required fields",
+        title: "Incomplete Form",
+        description: "Please fill in all fields",
         variant: "destructive",
       });
+      setIsLoading(false);
       return;
     }
 
     if (!isLogin && (!formData.fullName || !formData.idNumber)) {
       toast({
-        title: "Error",
-        description: "Please fill in all required fields",
+        title: "Incomplete Form",
+        description: "Please fill in all fields",
         variant: "destructive",
       });
+      setIsLoading(false);
       return;
     }
 
-    // Store user data in localStorage (temporary solution)
-    if (!isLogin) {
-      localStorage.setItem("helaUser", JSON.stringify(formData));
+    if (formData.password.length < 6) {
+      toast({
+        title: "Weak Password",
+        description: "Password must be at least 6 characters",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
     }
 
-    // Navigate to terms
-    navigate("/terms");
+    try {
+      // Use phone as email (phone@helaloans.com)
+      const email = `${formData.phoneNumber}@helaloans.com`;
+
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password: formData.password,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.fullName,
+              id_number: formData.idNumber,
+              phone: formData.phoneNumber,
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Account Created",
+          description: "Welcome to Hela Loans!",
+        });
+      }
+
+      navigate("/terms");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -122,8 +176,19 @@ const Auth = () => {
               />
             </div>
 
-            <Button type="submit" variant="cute" className="w-full" size="lg">
-              {isLogin ? (
+            <Button 
+              type="submit" 
+              variant="cute" 
+              className="w-full" 
+              size="lg"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Please wait...
+                </>
+              ) : isLogin ? (
                 <>
                   <LogIn className="w-5 h-5" />
                   Sign In

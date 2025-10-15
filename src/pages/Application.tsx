@@ -18,6 +18,7 @@ const Application = () => {
     nextOfKinName: "",
     nextOfKinContact: "",
     incomeLevel: "",
+    employmentStatus: "",
     occupation: "",
     contactPersonName: "",
     contactPersonPhone: "",
@@ -32,7 +33,7 @@ const Application = () => {
     // Validate required fields
     if (!formData.fullName || !formData.idNumber || !formData.whatsappNumber || 
         !formData.nextOfKinName || !formData.nextOfKinContact || !formData.incomeLevel || 
-        !formData.occupation || !formData.contactPersonName || !formData.contactPersonPhone) {
+        !formData.employmentStatus || !formData.occupation || !formData.contactPersonName || !formData.contactPersonPhone) {
       toast({
         title: "Incomplete Form",
         description: "Please fill in all required fields",
@@ -43,15 +44,45 @@ const Application = () => {
 
     setIsLoading(true);
 
+    // Calculate loan limit based on income and employment status
+    let baseLoan = 0;
+    
+    // Base loan calculation by income level
+    switch(formData.incomeLevel) {
+      case "below-20k":
+        baseLoan = 5000;
+        break;
+      case "20k-50k":
+        baseLoan = 15000;
+        break;
+      case "50k-100k":
+        baseLoan = 35000;
+        break;
+      case "above-100k":
+        baseLoan = 50000;
+        break;
+    }
+    
+    // Adjust by employment status
+    let loanLimit = baseLoan;
+    switch(formData.employmentStatus) {
+      case "employed":
+        loanLimit = Math.floor(baseLoan * 1.2); // 20% boost
+        break;
+      case "student":
+        loanLimit = Math.floor(baseLoan * 0.7); // 30% reduction
+        break;
+      case "unemployed":
+        loanLimit = Math.floor(baseLoan * 0.5); // 50% reduction
+        break;
+    }
+    
     // Store application data
     localStorage.setItem("helaApplication", JSON.stringify(formData));
+    localStorage.setItem("helaLoanLimit", loanLimit.toString());
 
-    // Simulate loan limit calculation
+    // Simulate processing time
     setTimeout(() => {
-      // Generate random loan limit between 5000 and 50000
-      const loanLimit = Math.floor(Math.random() * (50000 - 5000 + 1)) + 5000;
-      localStorage.setItem("helaLoanLimit", loanLimit.toString());
-      
       setIsLoading(false);
       navigate("/loan-limit");
     }, 20000); // 20 seconds as specified
@@ -143,6 +174,24 @@ const Application = () => {
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">Financial Information</h3>
                 
+                <div className="space-y-2">
+                  <Label htmlFor="employmentStatus">Employment Status *</Label>
+                  <Select 
+                    value={formData.employmentStatus}
+                    onValueChange={(value) => setFormData({ ...formData, employmentStatus: value })}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select employment status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="employed">Employed</SelectItem>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="unemployed">Unemployed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="incomeLevel">Income Level *</Label>
                   <Select 
