@@ -17,8 +17,6 @@ import {
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [showOtpInput, setShowOtpInput] = useState(false);
-  const [otp, setOtp] = useState("");
   const [formData, setFormData] = useState({
     fullName: "",
     idNumber: "",
@@ -104,9 +102,10 @@ const Auth = () => {
         
         navigate("/terms");
       } else {
-        // Send OTP to email for signup
-        const { error } = await supabase.auth.signInWithOtp({
+        // Direct signup
+        const { error } = await supabase.auth.signUp({
           email,
+          password: formData.password,
           options: {
             data: {
               full_name: formData.fullName,
@@ -118,11 +117,12 @@ const Auth = () => {
 
         if (error) throw error;
 
-        setShowOtpInput(true);
         toast({
-          title: "OTP Sent",
-          description: "Please check for the verification code",
+          title: "Account Created",
+          description: "Welcome to Hela Loans!",
         });
+        
+        navigate("/terms");
       }
     } catch (error: any) {
       toast({
@@ -135,53 +135,6 @@ const Auth = () => {
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (otp.length !== 6) {
-      toast({
-        title: "Invalid OTP",
-        description: "Please enter the 6-digit code",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const email = `${formData.phoneNumber}@helaloans.com`;
-      
-      // Verify OTP
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: 'email',
-      });
-
-      if (verifyError) throw verifyError;
-
-      // Set password after verification
-      const { error: passwordError } = await supabase.auth.updateUser({
-        password: formData.password,
-      });
-
-      if (passwordError) throw passwordError;
-
-      toast({
-        title: "Account Created",
-        description: "Welcome to Hela Loans!",
-      });
-
-      navigate("/terms");
-    } catch (error: any) {
-      toast({
-        title: "Verification Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-4">
@@ -204,64 +157,7 @@ const Auth = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {showOtpInput ? (
-            <div className="space-y-6">
-              <div className="space-y-2 text-center">
-                <Label>Enter Verification Code</Label>
-                <p className="text-sm text-muted-foreground">
-                  We sent a 6-digit code for phone number {formData.phoneNumber}
-                </p>
-              </div>
-              
-              <div className="flex justify-center">
-                <InputOTP
-                  maxLength={6}
-                  value={otp}
-                  onChange={setOtp}
-                >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
-
-              <Button 
-                onClick={handleVerifyOtp}
-                variant="cute" 
-                className="w-full" 
-                size="lg"
-                disabled={isLoading || otp.length !== 6}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  "Verify & Create Account"
-                )}
-              </Button>
-
-              <div className="text-center text-sm">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowOtpInput(false);
-                    setOtp("");
-                  }}
-                  className="text-primary hover:underline font-medium"
-                >
-                  Back to sign up
-                </button>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <>
                   <div className="space-y-2">
@@ -343,7 +239,7 @@ const Auth = () => {
                 ) : (
                   <>
                     <UserPlus className="w-5 h-5" />
-                    Send Verification Code
+                    Sign Up
                   </>
                 )}
               </Button>
@@ -360,7 +256,6 @@ const Auth = () => {
                 </button>
               </div>
             </form>
-          )}
         </CardContent>
       </Card>
     </div>
