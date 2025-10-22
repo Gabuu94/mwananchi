@@ -62,15 +62,38 @@ const Auth = () => {
       return;
     }
 
-    // Validate ID number (numeric only)
-    if (!isLogin && !/^\d+$/.test(formData.idNumber)) {
+    // Validate phone number length
+    if (formData.phoneNumber.length < 10 || formData.phoneNumber.length > 12) {
       toast({
-        title: "Invalid ID Number",
-        description: "ID Number must contain only numbers",
+        title: "Invalid Phone Number",
+        description: "Phone number must be 10-12 digits",
         variant: "destructive",
       });
       setIsLoading(false);
       return;
+    }
+
+    // Validate ID number (numeric only and proper length)
+    if (!isLogin) {
+      if (!/^\d+$/.test(formData.idNumber)) {
+        toast({
+          title: "Invalid ID Number",
+          description: "ID Number must contain only numbers",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      if (formData.idNumber.length < 6 || formData.idNumber.length > 10) {
+        toast({
+          title: "Invalid ID Number",
+          description: "ID Number must be 6-10 digits",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
     }
 
     if (formData.password.length < 6) {
@@ -166,8 +189,9 @@ const Auth = () => {
                       id="fullName"
                       placeholder="John Doe"
                       value={formData.fullName}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value.slice(0, 100) })}
                       required={!isLogin}
+                      maxLength={100}
                     />
                   </div>
 
@@ -181,10 +205,11 @@ const Auth = () => {
                       placeholder="12345678"
                       value={formData.idNumber}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '');
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                         setFormData({ ...formData, idNumber: value });
                       }}
                       required={!isLogin}
+                      maxLength={10}
                     />
                   </div>
                 </>
@@ -200,10 +225,11 @@ const Auth = () => {
                   placeholder="0712345678"
                   value={formData.phoneNumber}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '');
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 12);
                     setFormData({ ...formData, phoneNumber: value });
                   }}
                   required
+                  maxLength={12}
                 />
               </div>
 

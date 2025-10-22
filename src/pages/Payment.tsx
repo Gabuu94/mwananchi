@@ -49,10 +49,20 @@ const Payment = () => {
       return;
     }
 
-    if (transactionCode.length < 8) {
+    if (transactionCode.length < 8 || transactionCode.length > 15) {
       toast({
         title: "Invalid Code",
-        description: "Please enter a valid M-Pesa transaction code",
+        description: "M-Pesa transaction code must be 8-15 characters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate transaction code format (alphanumeric)
+    if (!/^[A-Z0-9]+$/.test(transactionCode)) {
+      toast({
+        title: "Invalid Code Format",
+        description: "Transaction code should contain only letters and numbers",
         variant: "destructive",
       });
       return;
@@ -184,7 +194,10 @@ const Payment = () => {
                   type="text"
                   placeholder="e.g., QGH7K2M3P9"
                   value={transactionCode}
-                  onChange={(e) => setTransactionCode(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 15);
+                    setTransactionCode(value);
+                  }}
                   className="w-full px-4 py-3 rounded-xl border-2 border-primary/20 focus:border-primary focus:outline-none transition-colors bg-card text-foreground placeholder:text-muted-foreground"
                   maxLength={15}
                 />

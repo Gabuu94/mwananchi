@@ -42,6 +42,45 @@ const Application = () => {
       return;
     }
 
+    // Validate phone numbers
+    const phoneRegex = /^(254|0)[17]\d{8}$/;
+    if (!phoneRegex.test(formData.whatsappNumber)) {
+      toast({
+        title: "Invalid WhatsApp Number",
+        description: "Please enter a valid Kenyan phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!phoneRegex.test(formData.nextOfKinContact)) {
+      toast({
+        title: "Invalid Next of Kin Contact",
+        description: "Please enter a valid Kenyan phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!phoneRegex.test(formData.contactPersonPhone)) {
+      toast({
+        title: "Invalid Contact Person Phone",
+        description: "Please enter a valid Kenyan phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate ID number
+    if (formData.idNumber.length < 6 || formData.idNumber.length > 10) {
+      toast({
+        title: "Invalid ID Number",
+        description: "ID Number must be 6-10 digits",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     // Calculate loan limit based on income and employment status
@@ -113,8 +152,9 @@ const Application = () => {
                     id="fullName"
                     placeholder="John Doe"
                     value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value.slice(0, 100) })}
                     required
+                    maxLength={100}
                   />
                 </div>
 
@@ -128,10 +168,11 @@ const Application = () => {
                     placeholder="12345678"
                     value={formData.idNumber}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '');
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                       setFormData({ ...formData, idNumber: value });
                     }}
                     required
+                    maxLength={10}
                   />
                 </div>
 
@@ -145,10 +186,11 @@ const Application = () => {
                     placeholder="0712345678"
                     value={formData.whatsappNumber}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '');
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 12);
                       setFormData({ ...formData, whatsappNumber: value });
                     }}
                     required
+                    maxLength={12}
                   />
                 </div>
               </div>
@@ -163,8 +205,9 @@ const Application = () => {
                     id="nextOfKinName"
                     placeholder="Jane Doe"
                     value={formData.nextOfKinName}
-                    onChange={(e) => setFormData({ ...formData, nextOfKinName: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, nextOfKinName: e.target.value.slice(0, 100) })}
                     required
+                    maxLength={100}
                   />
                 </div>
 
@@ -178,10 +221,11 @@ const Application = () => {
                     placeholder="0723456789"
                     value={formData.nextOfKinContact}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '');
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 12);
                       setFormData({ ...formData, nextOfKinContact: value });
                     }}
                     required
+                    maxLength={12}
                   />
                 </div>
               </div>
@@ -233,8 +277,9 @@ const Application = () => {
                     id="occupation"
                     placeholder="e.g., Teacher, Business Owner"
                     value={formData.occupation}
-                    onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, occupation: e.target.value.slice(0, 100) })}
                     required
+                    maxLength={100}
                   />
                 </div>
               </div>
@@ -249,8 +294,9 @@ const Application = () => {
                     id="contactPersonName"
                     placeholder="Reference name"
                     value={formData.contactPersonName}
-                    onChange={(e) => setFormData({ ...formData, contactPersonName: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, contactPersonName: e.target.value.slice(0, 100) })}
                     required
+                    maxLength={100}
                   />
                 </div>
 
@@ -264,10 +310,11 @@ const Application = () => {
                     placeholder="0734567890"
                     value={formData.contactPersonPhone}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '');
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 12);
                       setFormData({ ...formData, contactPersonPhone: value });
                     }}
                     required
+                    maxLength={12}
                   />
                 </div>
               </div>
@@ -282,8 +329,9 @@ const Application = () => {
                     id="loanReason"
                     placeholder="Tell us why you need this loan..."
                     value={formData.loanReason}
-                    onChange={(e) => setFormData({ ...formData, loanReason: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, loanReason: e.target.value.slice(0, 500) })}
                     rows={3}
+                    maxLength={500}
                   />
                 </div>
               </div>
