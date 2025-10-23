@@ -108,6 +108,9 @@ const Application = () => {
       case "employed":
         loanLimit = Math.floor(baseLoan * 1.2); // 20% boost
         break;
+      case "self-employed":
+        loanLimit = Math.floor(baseLoan * 1.1); // 10% boost
+        break;
       case "student":
         loanLimit = Math.floor(baseLoan * 0.7); // 30% reduction
         break;
@@ -246,6 +249,7 @@ const Application = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="employed">Employed</SelectItem>
+                      <SelectItem value="self-employed">Self-Employed</SelectItem>
                       <SelectItem value="student">Student</SelectItem>
                       <SelectItem value="unemployed">Unemployed</SelectItem>
                     </SelectContent>
