@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Application = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -139,7 +140,7 @@ const Application = () => {
     setTimeout(() => {
       setIsLoading(false);
       navigate("/loan-limit");
-    }, 20000); // 20 seconds as specified
+    }, 30000); // 30 seconds
   };
 
   return (
@@ -407,19 +408,31 @@ const Application = () => {
           </CardContent>
         </Card>
 
-        {isLoading && (
-          <Card className="mt-6 bg-primary/5 border-primary/20">
-            <CardContent className="py-8 text-center">
-              <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-              <p className="text-lg font-semibold text-primary">
-                Please wait a few moments while we calculate your loan limit...
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                We're analyzing your information to provide you with the best loan offer
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        <Dialog open={isLoading} onOpenChange={() => {}}>
+          <DialogContent className="sm:max-w-md [&>button]:hidden">
+            <DialogHeader>
+              <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <Sparkles className="w-10 h-10 text-primary animate-spin" style={{ animationDuration: '3s' }} />
+              </div>
+              <DialogTitle className="text-center text-2xl">
+                ✨ Calculating Your Loan Limit
+              </DialogTitle>
+              <DialogDescription className="text-center space-y-3 pt-2">
+                <p className="text-base font-medium text-foreground">
+                  Please don't exit this page!
+                </p>
+                <p className="text-sm">
+                  We're analyzing your information to provide you with the best personalized loan offer...
+                </p>
+                <div className="flex items-center justify-center gap-2 pt-4">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
