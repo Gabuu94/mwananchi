@@ -15,11 +15,13 @@ const Application = () => {
     fullName: "",
     idNumber: "",
     whatsappNumber: "",
+    mpesaNumber: "",
     nextOfKinName: "",
     nextOfKinContact: "",
     incomeLevel: "",
     employmentStatus: "",
     occupation: "",
+    hasExistingLoan: "",
     contactPersonName: "",
     contactPersonPhone: "",
     loanReason: "",
@@ -31,9 +33,10 @@ const Application = () => {
     e.preventDefault();
     
     // Validate required fields
-    if (!formData.fullName || !formData.idNumber || !formData.whatsappNumber || 
+    if (!formData.fullName || !formData.idNumber || !formData.whatsappNumber || !formData.mpesaNumber ||
         !formData.nextOfKinName || !formData.nextOfKinContact || !formData.incomeLevel || 
-        !formData.employmentStatus || !formData.occupation || !formData.contactPersonName || !formData.contactPersonPhone) {
+        !formData.employmentStatus || !formData.occupation || !formData.hasExistingLoan ||
+        !formData.contactPersonName || !formData.contactPersonPhone) {
       toast({
         title: "Incomplete Form",
         description: "Please fill in all required fields",
@@ -47,6 +50,15 @@ const Application = () => {
     if (!phoneRegex.test(formData.whatsappNumber)) {
       toast({
         title: "Invalid WhatsApp Number",
+        description: "Please enter a valid Kenyan phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!phoneRegex.test(formData.mpesaNumber)) {
+      toast({
+        title: "Invalid M-Pesa Number",
         description: "Please enter a valid Kenyan phone number",
         variant: "destructive",
       });
@@ -196,6 +208,24 @@ const Application = () => {
                     maxLength={12}
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mpesaNumber">Registered M-Pesa Number *</Label>
+                  <Input
+                    id="mpesaNumber"
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="0712345678"
+                    value={formData.mpesaNumber}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      setFormData({ ...formData, mpesaNumber: value });
+                    }}
+                    required
+                    maxLength={12}
+                  />
+                </div>
               </div>
 
               {/* Next of Kin */}
@@ -285,6 +315,23 @@ const Application = () => {
                     required
                     maxLength={100}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="hasExistingLoan">Do you have another existing loan? *</Label>
+                  <Select 
+                    value={formData.hasExistingLoan}
+                    onValueChange={(value) => setFormData({ ...formData, hasExistingLoan: value })}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">Yes</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
