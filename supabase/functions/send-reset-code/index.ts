@@ -57,15 +57,24 @@ const handler = async (req: Request): Promise<Response> => {
       headers: {
         'apiKey': apiKey,
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
       },
       body: params.toString(),
     });
 
-    const smsResult = await smsResponse.json();
-    console.log('SMS API Response:', smsResult);
+    const responseText = await smsResponse.text();
+    console.log('SMS API Response Status:', smsResponse.status);
+    console.log('SMS API Response:', responseText);
 
     if (!smsResponse.ok) {
-      throw new Error(`Failed to send SMS: ${JSON.stringify(smsResult)}`);
+      throw new Error(`Failed to send SMS (${smsResponse.status}): ${responseText}`);
+    }
+
+    let smsResult;
+    try {
+      smsResult = JSON.parse(responseText);
+    } catch (e) {
+      throw new Error(`Invalid API response: ${responseText}`);
     }
 
     // In a production app, store this in Redis or database
