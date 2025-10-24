@@ -11,6 +11,7 @@ import Application from "./pages/Application";
 import LoanLimit from "./pages/LoanLimit";
 import LoanSelection from "./pages/LoanSelection";
 import Payment from "./pages/Payment";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/loan-limit" element={<LoanLimit />} />
             <Route path="/loan-selection" element={<LoanSelection />} />
             <Route path="/payment" element={<Payment />} />
+            <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
