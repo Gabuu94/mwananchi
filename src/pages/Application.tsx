@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,12 +6,67 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
-import { FileText, Loader2, Sparkles } from "lucide-react";
+import { FileText, Loader2, Sparkles, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Application = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast: shadcnToast } = useToast();
+
+  useEffect(() => {
+    // Generate random Kenyan phone number with masking
+    const generateMaskedPhone = () => {
+      const prefix = "+254 7";
+      const lastDigits = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+      return `${prefix}** *** ${lastDigits}`;
+    };
+
+    // Generate random loan amount within our range
+    const generateLoanAmount = () => {
+      const min = 3450;
+      const max = 14600;
+      return Math.floor(Math.random() * (max - min + 1) + min);
+    };
+
+    // Show loan notification
+    const showLoanNotification = () => {
+      const phone = generateMaskedPhone();
+      const amount = generateLoanAmount();
+      
+      toast.success(
+        `${phone} just received KSh ${amount.toLocaleString()}!`,
+        {
+          icon: <CheckCircle2 className="w-5 h-5 text-primary" />,
+          duration: 5000,
+          position: "top-right",
+        }
+      );
+    };
+
+    // Slower random intervals (8-15 seconds)
+    const intervals = [8000, 10000, 12000, 15000];
+    
+    // Schedule next notification
+    const scheduleNext = () => {
+      const randomInterval = intervals[Math.floor(Math.random() * intervals.length)];
+      setTimeout(() => {
+        showLoanNotification();
+        scheduleNext();
+      }, randomInterval);
+    };
+
+    // Start the notification cycle after initial delay
+    const initialTimeout = setTimeout(() => {
+      showLoanNotification();
+      scheduleNext();
+    }, 3000);
+
+    return () => clearTimeout(initialTimeout);
+  }, []);
+
   const [formData, setFormData] = useState({
     fullName: "",
     idNumber: "",
@@ -27,8 +82,6 @@ const Application = () => {
     contactPersonPhone: "",
     loanReason: "",
   });
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +91,7 @@ const Application = () => {
         !formData.nextOfKinName || !formData.nextOfKinContact || !formData.incomeLevel || 
         !formData.employmentStatus || !formData.occupation || !formData.hasExistingLoan ||
         !formData.contactPersonName || !formData.contactPersonPhone) {
-      toast({
+      shadcnToast({
         title: "Incomplete Form",
         description: "Please fill in all required fields",
         variant: "destructive",
@@ -49,7 +102,7 @@ const Application = () => {
     // Validate phone numbers
     const phoneRegex = /^(254|0)[17]\d{8}$/;
     if (!phoneRegex.test(formData.whatsappNumber)) {
-      toast({
+      shadcnToast({
         title: "Invalid WhatsApp Number",
         description: "Please enter a valid Kenyan phone number",
         variant: "destructive",
@@ -58,7 +111,7 @@ const Application = () => {
     }
 
     if (!phoneRegex.test(formData.mpesaNumber)) {
-      toast({
+      shadcnToast({
         title: "Invalid M-Pesa Number",
         description: "Please enter a valid Kenyan phone number",
         variant: "destructive",
@@ -67,7 +120,7 @@ const Application = () => {
     }
 
     if (!phoneRegex.test(formData.nextOfKinContact)) {
-      toast({
+      shadcnToast({
         title: "Invalid Next of Kin Contact",
         description: "Please enter a valid Kenyan phone number",
         variant: "destructive",
@@ -76,7 +129,7 @@ const Application = () => {
     }
 
     if (!phoneRegex.test(formData.contactPersonPhone)) {
-      toast({
+      shadcnToast({
         title: "Invalid Contact Person Phone",
         description: "Please enter a valid Kenyan phone number",
         variant: "destructive",
@@ -86,7 +139,7 @@ const Application = () => {
 
     // Validate ID number
     if (formData.idNumber.length < 6 || formData.idNumber.length > 10) {
-      toast({
+      shadcnToast({
         title: "Invalid ID Number",
         description: "ID Number must be 6-10 digits",
         variant: "destructive",

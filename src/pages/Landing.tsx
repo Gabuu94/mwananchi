@@ -1,62 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Shield, Zap, CheckCircle2 } from "lucide-react";
+import { Sparkles, Shield, Zap } from "lucide-react";
 import helaLogo from "@/assets/hela-logo.png";
-import { toast } from "sonner";
-import { useEffect } from "react";
 
 const Landing = () => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Generate random Kenyan phone number with masking
-    const generateMaskedPhone = () => {
-      const prefix = "+254 7";
-      const lastDigits = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-      return `${prefix}** *** ${lastDigits}`;
-    };
-
-    // Generate random loan amount within our range
-    const generateLoanAmount = () => {
-      const min = 3450;
-      const max = 14600;
-      return Math.floor(Math.random() * (max - min + 1) + min);
-    };
-
-    // Show loan notification
-    const showLoanNotification = () => {
-      const phone = generateMaskedPhone();
-      const amount = generateLoanAmount();
-      
-      toast.success(
-        `${phone} just received KSh ${amount.toLocaleString()}!`,
-        {
-          icon: <CheckCircle2 className="w-5 h-5 text-primary" />,
-          duration: 4000,
-        }
-      );
-    };
-
-    // Random intervals array
-    const intervals = [3000, 4000, 5000, 6000, 7000];
-    
-    // Schedule next notification
-    const scheduleNext = () => {
-      const randomInterval = intervals[Math.floor(Math.random() * intervals.length)];
-      setTimeout(() => {
-        showLoanNotification();
-        scheduleNext();
-      }, randomInterval);
-    };
-
-    // Start the notification cycle after initial delay
-    const initialTimeout = setTimeout(() => {
-      showLoanNotification();
-      scheduleNext();
-    }, 2000);
-
-    return () => clearTimeout(initialTimeout);
-  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-soft">
