@@ -102,16 +102,16 @@ const Application = () => {
     // Base loan calculation by income level
     switch(formData.incomeLevel) {
       case "below-20k":
-        baseLoan = 5000;
+        baseLoan = 2500;
         break;
       case "20k-50k":
-        baseLoan = 15000;
+        baseLoan = 8000;
         break;
       case "50k-100k":
-        baseLoan = 35000;
+        baseLoan = 18000;
         break;
       case "above-100k":
-        baseLoan = 50000;
+        baseLoan = 25000;
         break;
     }
     
