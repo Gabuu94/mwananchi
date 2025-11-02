@@ -123,7 +123,7 @@ const LoanSelection = () => {
               <div className="flex items-start gap-3">
                 <Info className="w-5 h-5 text-accent-foreground mt-0.5 flex-shrink-0" />
                 <div className="space-y-2 flex-1">
-                  <h3 className="font-semibold text-accent-foreground">Loan Activation Fee</h3>
+                  <h3 className="font-semibold text-accent-foreground">Processing Fee</h3>
                   <p className="text-sm text-muted-foreground">
                     A one-time processing fee is required to activate your loan. This fee covers verification and disbursement costs.
                   </p>
@@ -149,7 +149,7 @@ const LoanSelection = () => {
                   <span className="font-bold">KES {selectedAmount.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/80">Activation Fee:</span>
+                  <span className="text-white/80">Processing Fee:</span>
                   <span className="font-bold">KES {processingFee.toLocaleString()}</span>
                 </div>
                 <div className="border-t border-white/20 pt-2 mt-2">

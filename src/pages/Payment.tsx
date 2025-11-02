@@ -94,7 +94,7 @@ const Payment = () => {
             </div>
             <CardTitle className="text-2xl">Complete Payment</CardTitle>
             <CardDescription>
-              Pay the activation fee to receive your loan
+              Pay the processing fee to receive your loan
             </CardDescription>
           </CardHeader>
           
@@ -108,7 +108,7 @@ const Payment = () => {
                   <span className="font-bold">KES {loanAmount.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-lg">
-                  <span className="font-semibold">Activation Fee:</span>
+                  <span className="font-semibold">Processing Fee:</span>
                   <span className="font-bold text-primary">KES {processingFee.toLocaleString()}</span>
                 </div>
               </div>
