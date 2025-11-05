@@ -1,13 +1,11 @@
 ## Admin Account Instructions
 
-To create the admin account:
-
 **Admin Credentials:**
-- Phone/Email: 0797585933@hela.loans
+- Phone Number: 0797585933
 - Password: 125050.Lit
 
 **Setup Steps:**
-1. Go to `/auth` and sign up with the credentials above
+1. Go to `/auth` and sign up with the phone number and password above
 2. After signing up, let me know so I can add the admin role to your account
 
 **Admin Access:**
