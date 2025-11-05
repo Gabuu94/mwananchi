@@ -2,20 +2,18 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Smartphone, Copy, CheckCircle2, AlertCircle } from "lucide-react";
+import { Smartphone, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Payment = () => {
   const [processingFee, setProcessingFee] = useState(0);
   const [loanAmount, setLoanAmount] = useState(0);
-  const [copied, setCopied] = useState(false);
-  const [transactionCode, setTransactionCode] = useState("");
-  const [isVerifying, setIsVerifying] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentInitiated, setPaymentInitiated] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const tillNumber = "22222";
 
   useEffect(() => {
     const fee = localStorage.getItem("processingFee");
@@ -30,46 +28,28 @@ const Payment = () => {
     setLoanAmount(parseInt(amount));
   }, [navigate]);
 
-  const copyTillNumber = () => {
-    navigator.clipboard.writeText(tillNumber);
-    setCopied(true);
-    toast({
-      title: "Copied!",
-      description: "Till number copied to clipboard",
-    });
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleVerifyPayment = async () => {
-    if (!transactionCode.trim()) {
+  const handlePayNow = async () => {
+    if (!phoneNumber.trim()) {
       toast({
-        title: "Transaction Code Required",
-        description: "Please enter your M-Pesa transaction code",
+        title: "Phone Number Required",
+        description: "Please enter your M-Pesa phone number",
         variant: "destructive",
       });
       return;
     }
 
-    if (transactionCode.length < 8 || transactionCode.length > 15) {
+    // Validate phone number format
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    if (cleanPhone.length < 9 || cleanPhone.length > 12) {
       toast({
-        title: "Invalid Code",
-        description: "M-Pesa transaction code must be 8-15 characters",
+        title: "Invalid Phone Number",
+        description: "Please enter a valid M-Pesa phone number",
         variant: "destructive",
       });
       return;
     }
 
-    // Validate transaction code format (alphanumeric)
-    if (!/^[A-Z0-9]+$/.test(transactionCode)) {
-      toast({
-        title: "Invalid Code Format",
-        description: "Transaction code should contain only letters and numbers",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsVerifying(true);
+    setIsProcessing(true);
     
     try {
       const applicationId = localStorage.getItem("currentApplicationId");
@@ -80,49 +60,93 @@ const Payment = () => {
           description: "Application not found. Please start over.",
           variant: "destructive",
         });
-        setIsVerifying(false);
+        setIsProcessing(false);
         navigate("/application");
         return;
       }
 
-      // Create loan disbursement record
-      const { error: disbursementError } = await supabase
-        .from("loan_disbursements")
-        .insert({
-          application_id: applicationId,
-          loan_amount: loanAmount,
-          processing_fee: processingFee,
-          transaction_code: transactionCode,
-          payment_verified: false,
-          disbursed: false
-        });
+      // Call STK Push edge function
+      const { data, error } = await supabase.functions.invoke('mpesa-stk-push', {
+        body: {
+          phoneNumber: phoneNumber,
+          amount: processingFee,
+          applicationId: applicationId,
+        }
+      });
 
-      if (disbursementError) {
-        console.error("Disbursement error:", disbursementError);
+      if (error) {
+        console.error("STK Push error:", error);
         toast({
-          title: "Error",
-          description: "Failed to process disbursement. Please try again.",
+          title: "Payment Failed",
+          description: error.message || "Failed to initiate payment. Please try again.",
           variant: "destructive",
         });
-        setIsVerifying(false);
+        setIsProcessing(false);
         return;
       }
 
-      // Clear localStorage
-      localStorage.removeItem("currentApplicationId");
-      localStorage.removeItem("helaLoanLimit");
-      localStorage.removeItem("selectedLoanAmount");
-      localStorage.removeItem("processingFee");
+      if (!data?.success) {
+        toast({
+          title: "Payment Failed",
+          description: data?.error || "Failed to initiate payment. Please try again.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
 
-      setIsVerifying(false);
-      toast({
-        title: "Payment Verified! 🎉",
-        description: "Your loan is being disbursed to your M-Pesa number now.",
-      });
+      setPaymentInitiated(true);
+      setIsProcessing(false);
       
-      setTimeout(() => {
-        navigate("/dashboard");
+      toast({
+        title: "Payment Request Sent! 📱",
+        description: "Please check your phone and enter your M-Pesa PIN to complete payment.",
+      });
+
+      // Poll for payment status
+      const checkoutRequestId = data.checkoutRequestId;
+      let attempts = 0;
+      const maxAttempts = 30; // Check for 60 seconds (30 * 2 seconds)
+
+      const pollInterval = setInterval(async () => {
+        attempts++;
+        
+        const { data: disbursement } = await supabase
+          .from("loan_disbursements")
+          .select("payment_verified")
+          .eq("transaction_code", checkoutRequestId)
+          .single();
+
+        if (disbursement?.payment_verified) {
+          clearInterval(pollInterval);
+          
+          // Clear localStorage
+          localStorage.removeItem("currentApplicationId");
+          localStorage.removeItem("helaLoanLimit");
+          localStorage.removeItem("selectedLoanAmount");
+          localStorage.removeItem("processingFee");
+
+          toast({
+            title: "Payment Successful! 🎉",
+            description: "Your loan is being disbursed to your M-Pesa number now.",
+          });
+          
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 2000);
+        } else if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          toast({
+            title: "Payment Pending",
+            description: "Payment is taking longer than expected. Please check your dashboard.",
+            variant: "destructive",
+          });
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 3000);
+        }
       }, 2000);
+
     } catch (error) {
       console.error("Error:", error);
       toast({
@@ -130,7 +154,7 @@ const Payment = () => {
         description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
-      setIsVerifying(false);
+      setIsProcessing(false);
     }
   };
 
@@ -164,60 +188,36 @@ const Payment = () => {
               </div>
             </div>
 
-            {/* Payment Instructions */}
+            {/* STK Push Instructions */}
             <div className="space-y-4">
               <div className="bg-primary/5 p-6 rounded-xl border-2 border-primary/20">
                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
                   <Smartphone className="w-5 h-5 text-primary" />
-                  M-Pesa Payment Instructions
+                  M-Pesa STK Push Payment
                 </h3>
                 
                 <ol className="space-y-3 text-sm">
                   <li className="flex gap-3">
                     <span className="font-bold text-primary min-w-6">1.</span>
-                    <span>Go to M-Pesa menu on your phone</span>
+                    <span>Enter your M-Pesa phone number below</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="font-bold text-primary min-w-6">2.</span>
-                    <span>Select "Lipa na M-Pesa"</span>
+                    <span>Click "Pay Now" button</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="font-bold text-primary min-w-6">3.</span>
-                    <span>Select "Buy Goods and Services"</span>
+                    <span>You'll receive a prompt on your phone</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="font-bold text-primary min-w-6">4.</span>
-                    <span>Enter Till Number: <strong>{tillNumber}</strong></span>
+                    <span>Enter your M-Pesa PIN to complete the payment</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="font-bold text-primary min-w-6">5.</span>
-                    <span>Enter Amount: <strong>KES {processingFee.toLocaleString()}</strong></span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="font-bold text-primary min-w-6">6.</span>
-                    <span>Enter your M-Pesa PIN and confirm</span>
+                    <span>Your loan will be disbursed automatically</span>
                   </li>
                 </ol>
-              </div>
-
-              {/* Till Number Display */}
-              <div className="bg-gradient-primary p-6 rounded-xl text-white">
-                <p className="text-white/80 text-sm mb-2">M-Pesa Till Number</p>
-                <div className="flex items-center justify-between">
-                  <p className="text-4xl font-bold tracking-wider">{tillNumber}</p>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    onClick={copyTillNumber}
-                    className="h-12 w-12"
-                  >
-                    {copied ? (
-                      <CheckCircle2 className="w-6 h-6" />
-                    ) : (
-                      <Copy className="w-6 h-6" />
-                    )}
-                  </Button>
-                </div>
               </div>
 
               {/* Important Notice */}
@@ -226,33 +226,33 @@ const Payment = () => {
                 <div className="space-y-1">
                   <p className="font-semibold text-sm text-accent-foreground">Important Reminder</p>
                   <p className="text-xs text-muted-foreground">
-                    Make sure to pay using the same M-Pesa number you registered with. 
+                    Use the same M-Pesa number you registered with. 
                     Your loan will be disbursed to this number once payment is confirmed.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Transaction Code Input */}
+            {/* Phone Number Input */}
             <div className="space-y-4">
               <div>
-                <label htmlFor="transactionCode" className="block text-sm font-semibold mb-2">
-                  M-Pesa Transaction Code
+                <label htmlFor="phoneNumber" className="block text-sm font-semibold mb-2">
+                  M-Pesa Phone Number
                 </label>
                 <input
-                  id="transactionCode"
-                  type="text"
-                  placeholder="e.g., QGH7K2M3P9"
-                  value={transactionCode}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 15);
-                    setTransactionCode(value);
-                  }}
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="e.g., 0712345678 or 254712345678"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border-2 border-primary/20 focus:border-primary focus:outline-none transition-colors bg-card text-foreground placeholder:text-muted-foreground"
-                  maxLength={15}
+                  disabled={paymentInitiated}
                 />
                 <p className="text-xs text-muted-foreground mt-2">
-                  Enter the transaction code from your M-Pesa confirmation SMS
+                  {paymentInitiated 
+                    ? "Payment request sent. Check your phone for the M-Pesa prompt."
+                    : "Enter your M-Pesa registered phone number"
+                  }
                 </p>
               </div>
             </div>
@@ -263,17 +263,17 @@ const Payment = () => {
                 variant="cute" 
                 size="lg"
                 className="w-full"
-                onClick={handleVerifyPayment}
-                disabled={isVerifying}
+                onClick={handlePayNow}
+                disabled={isProcessing || paymentInitiated}
               >
-                {isVerifying ? "Verifying Payment..." : "Verify Payment & Get Loan"}
+                {isProcessing ? "Processing..." : paymentInitiated ? "Waiting for Payment..." : "Pay Now"}
               </Button>
               
               <Button 
                 variant="outline"
                 className="w-full"
                 onClick={() => navigate("/loan-selection")}
-                disabled={isVerifying}
+                disabled={isProcessing || paymentInitiated}
               >
                 Go Back
               </Button>
