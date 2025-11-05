@@ -137,8 +137,8 @@ export const ChatBot = () => {
             </Button>
           </CardHeader>
           
-          <CardContent className="flex-1 flex flex-col p-0">
-            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+          <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+            <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
                 {messages.map((msg, idx) => (
                   <div
@@ -146,16 +146,17 @@ export const ChatBot = () => {
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                      className={`max-w-[80%] rounded-lg px-4 py-2 break-words ${
                         msg.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted"
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{msg.content}</p>
                     </div>
                   </div>
                 ))}
+                <div ref={scrollRef} />
               </div>
             </ScrollArea>
 
