@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { FileText, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const Application = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -97,51 +98,108 @@ const Application = () => {
 
     setIsLoading(true);
 
-    // Calculate loan limit based on income and employment status
-    let baseLoan = 0;
-    
-    // Base loan calculation by income level
-    switch(formData.incomeLevel) {
-      case "below-20k":
-        baseLoan = 3450;
-        break;
-      case "20k-50k":
-        baseLoan = 7000;
-        break;
-      case "50k-100k":
-        baseLoan = 11000;
-        break;
-      case "above-100k":
-        baseLoan = 14600;
-        break;
-    }
-    
-    // Adjust by employment status
-    let loanLimit = baseLoan;
-    switch(formData.employmentStatus) {
-      case "employed":
-        loanLimit = Math.floor(baseLoan * 1.2); // 20% boost
-        break;
-      case "self-employed":
-        loanLimit = Math.floor(baseLoan * 1.1); // 10% boost
-        break;
-      case "student":
-        loanLimit = Math.floor(baseLoan * 0.7); // 30% reduction
-        break;
-      case "unemployed":
-        loanLimit = Math.floor(baseLoan * 0.5); // 50% reduction
-        break;
-    }
-    
-    // Store application data
-    localStorage.setItem("helaApplication", JSON.stringify(formData));
-    localStorage.setItem("helaLoanLimit", loanLimit.toString());
+    try {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        toast({
+          title: "Authentication Error",
+          description: "Please log in to submit an application",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        navigate("/auth");
+        return;
+      }
 
-    // Simulate processing time
-    setTimeout(() => {
+      // Calculate loan limit based on income and employment status
+      let baseLoan = 0;
+      
+      // Base loan calculation by income level
+      switch(formData.incomeLevel) {
+        case "below-20k":
+          baseLoan = 3450;
+          break;
+        case "20k-50k":
+          baseLoan = 7000;
+          break;
+        case "50k-100k":
+          baseLoan = 11000;
+          break;
+        case "above-100k":
+          baseLoan = 14600;
+          break;
+      }
+      
+      // Adjust by employment status
+      let loanLimit = baseLoan;
+      switch(formData.employmentStatus) {
+        case "employed":
+          loanLimit = Math.floor(baseLoan * 1.2); // 20% boost
+          break;
+        case "self-employed":
+          loanLimit = Math.floor(baseLoan * 1.1); // 10% boost
+          break;
+        case "student":
+          loanLimit = Math.floor(baseLoan * 0.7); // 30% reduction
+          break;
+        case "unemployed":
+          loanLimit = Math.floor(baseLoan * 0.5); // 50% reduction
+          break;
+      }
+
+      // Simulate processing time before saving to database
+      setTimeout(async () => {
+        // Save application to database
+        const { data: application, error: dbError } = await supabase
+          .from("loan_applications")
+          .insert({
+            user_id: user.id,
+            loan_limit: loanLimit,
+            full_name: formData.fullName,
+            id_number: formData.idNumber,
+            whatsapp_number: formData.whatsappNumber,
+            next_of_kin_name: formData.nextOfKinName,
+            next_of_kin_contact: formData.nextOfKinContact,
+            income_level: formData.incomeLevel,
+            employment_status: formData.employmentStatus,
+            occupation: formData.occupation,
+            contact_person_name: formData.contactPersonName,
+            contact_person_phone: formData.contactPersonPhone,
+            loan_reason: formData.loanReason || "",
+            status: "pending"
+          })
+          .select()
+          .single();
+
+        if (dbError) {
+          console.error("Database error:", dbError);
+          toast({
+            title: "Error",
+            description: "Failed to submit application. Please try again.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Store application ID and loan limit in localStorage for next steps
+        localStorage.setItem("currentApplicationId", application.id);
+        localStorage.setItem("helaLoanLimit", loanLimit.toString());
+        
+        setIsLoading(false);
+        navigate("/loan-limit");
+      }, 30000); // 30 seconds
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
       setIsLoading(false);
-      navigate("/loan-limit");
-    }, 30000); // 30 seconds
+    }
   };
 
   return (

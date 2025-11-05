@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useNavigate } from "react-router-dom";
 import { Smartphone, Copy, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Payment = () => {
   const [processingFee, setProcessingFee] = useState(0);
@@ -70,8 +71,49 @@ const Payment = () => {
 
     setIsVerifying(true);
     
-    // Simulate payment verification (in real app, this would call a backend API)
-    setTimeout(() => {
+    try {
+      const applicationId = localStorage.getItem("currentApplicationId");
+      
+      if (!applicationId) {
+        toast({
+          title: "Error",
+          description: "Application not found. Please start over.",
+          variant: "destructive",
+        });
+        setIsVerifying(false);
+        navigate("/application");
+        return;
+      }
+
+      // Create loan disbursement record
+      const { error: disbursementError } = await supabase
+        .from("loan_disbursements")
+        .insert({
+          application_id: applicationId,
+          loan_amount: loanAmount,
+          processing_fee: processingFee,
+          transaction_code: transactionCode,
+          payment_verified: false,
+          disbursed: false
+        });
+
+      if (disbursementError) {
+        console.error("Disbursement error:", disbursementError);
+        toast({
+          title: "Error",
+          description: "Failed to process disbursement. Please try again.",
+          variant: "destructive",
+        });
+        setIsVerifying(false);
+        return;
+      }
+
+      // Clear localStorage
+      localStorage.removeItem("currentApplicationId");
+      localStorage.removeItem("helaLoanLimit");
+      localStorage.removeItem("selectedLoanAmount");
+      localStorage.removeItem("processingFee");
+
       setIsVerifying(false);
       toast({
         title: "Payment Verified! 🎉",
@@ -79,9 +121,17 @@ const Payment = () => {
       });
       
       setTimeout(() => {
-        navigate("/");
-      }, 3000);
-    }, 2000);
+        navigate("/dashboard");
+      }, 2000);
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+      setIsVerifying(false);
+    }
   };
 
   return (
