@@ -27,6 +27,73 @@ export const ChatBot = () => {
     }
   }, [messages]);
 
+  // Load previous support messages when opening chat
+  useEffect(() => {
+    if (isOpen) {
+      loadSupportMessages();
+      subscribeToSupportUpdates();
+    }
+  }, [isOpen]);
+
+  const loadSupportMessages = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: requests } = await supabase
+        .from("support_requests")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+
+      if (requests && requests.length > 0) {
+        const supportMessages: Message[] = [];
+        requests.forEach(req => {
+          supportMessages.push({ 
+            role: "user", 
+            content: `[Support Request] ${req.message}` 
+          });
+          if (req.admin_reply) {
+            supportMessages.push({ 
+              role: "assistant", 
+              content: `[Admin Reply] ${req.admin_reply}` 
+            });
+          }
+        });
+        setMessages(prev => [...prev, ...supportMessages]);
+      }
+    } catch (error) {
+      console.error("Error loading support messages:", error);
+    }
+  };
+
+  const subscribeToSupportUpdates = () => {
+    const channel = supabase
+      .channel('support-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'support_requests'
+        },
+        (payload: any) => {
+          if (payload.new.admin_reply && payload.new.admin_reply !== payload.old.admin_reply) {
+            setMessages(prev => [...prev, {
+              role: "assistant",
+              content: `[Admin Reply] ${payload.new.admin_reply}`
+            }]);
+            toast.success("New reply from admin!");
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
   const streamChat = async (userMessage: string) => {
     const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
     
@@ -137,15 +204,18 @@ export const ChatBot = () => {
 
       if (error) throw error;
 
-      toast.success("Support request sent! Check your Messages page to see responses.");
+      // Add to chat messages
+      setMessages(prev => [...prev, {
+        role: "user",
+        content: `[Support Request] ${supportMessage}`
+      }, {
+        role: "assistant",
+        content: "Your support request has been sent to our team. You'll see the admin's reply right here in this chat!"
+      }]);
+
+      toast.success("Support request sent!");
       setSupportMessage("");
       setShowSupportForm(false);
-      
-      // Add a system message to the chat
-      setMessages((prev) => [...prev, {
-        role: "assistant",
-        content: "Your support request has been sent! You can view admin responses on your Messages page from the dashboard."
-      }]);
     } catch (error) {
       console.error("Error sending support request:", error);
       toast.error("Failed to send support request");
