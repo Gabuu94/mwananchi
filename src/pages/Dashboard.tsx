@@ -4,10 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, LogOut, CreditCard, User, DollarSign, Clock, CheckCircle, XCircle, FileText } from "lucide-react";
+import { Loader2, CreditCard, User, DollarSign, Clock, CheckCircle, XCircle, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatBot } from "@/components/ChatBot";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { UserMenu } from "@/components/UserMenu";
 import helaLogo from "@/assets/hela-logo.png";
 
 const Dashboard = () => {
@@ -65,11 +65,6 @@ const Dashboard = () => {
   };
 
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
@@ -97,21 +92,20 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-soft p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto" />
-            <div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto flex-shrink-0" />
+            <div className="min-w-0 flex-1">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">My Account</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                Welcome back, {user?.user_metadata?.full_name || user?.email}!
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <ThemeToggle />
-            <Button variant="outline" onClick={handleLogout} size="sm">
-              <LogOut className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
-          </div>
+          <UserMenu 
+            userName={user?.user_metadata?.full_name} 
+            userEmail={user?.email}
+          />
         </div>
 
         {/* Quick Actions */}

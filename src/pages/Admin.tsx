@@ -6,13 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, LogOut, Users, FileText, MessageSquare, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { UserMenu } from "@/components/UserMenu";
 import helaLogo from "@/assets/hela-logo.png";
 
 const Admin = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [applications, setApplications] = useState<any[]>([]);
   const [supportRequests, setSupportRequests] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -33,6 +34,8 @@ const Admin = () => {
         navigate("/auth");
         return;
       }
+
+      setUser(user);
 
       // Check if user has admin role
       const { data: roles, error } = await supabase
@@ -97,11 +100,6 @@ const Admin = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
@@ -127,21 +125,18 @@ const Admin = () => {
     <div className="min-h-screen bg-gradient-soft p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto" />
-            <div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto flex-shrink-0" />
+            <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Manage all loan applications and support</p>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Manage all applications</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <ThemeToggle />
-            <Button variant="outline" onClick={handleLogout} size="sm">
-              <LogOut className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
-          </div>
+          <UserMenu 
+            userName={user?.user_metadata?.full_name || "Admin"} 
+            userEmail={user?.email}
+          />
         </div>
 
         {/* Stats Grid */}
