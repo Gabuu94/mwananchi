@@ -19,6 +19,8 @@ export const ChatBot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSupportForm, setShowSupportForm] = useState(false);
   const [supportMessage, setSupportMessage] = useState("");
+  const [adminTyping, setAdminTyping] = useState(false);
+  const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,6 +50,11 @@ export const ChatBot = () => {
 
       if (requests && requests.length > 0) {
         const supportMessages: Message[] = [];
+        const latestPending = requests.find(r => r.status === 'pending');
+        if (latestPending) {
+          setCurrentRequestId(latestPending.id);
+        }
+        
         requests.forEach(req => {
           supportMessages.push({ 
             role: "user", 
@@ -66,6 +73,31 @@ export const ChatBot = () => {
       console.error("Error loading support messages:", error);
     }
   };
+
+  // Listen for admin typing
+  useEffect(() => {
+    if (!currentRequestId || !isOpen) return;
+
+    const channel = supabase.channel(`typing-${currentRequestId}`);
+    
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const isTyping = Object.keys(state).length > 0;
+        setAdminTyping(isTyping);
+      })
+      .on('presence', { event: 'join' }, () => {
+        setAdminTyping(true);
+      })
+      .on('presence', { event: 'leave' }, () => {
+        setAdminTyping(false);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentRequestId, isOpen]);
 
   const subscribeToSupportUpdates = () => {
     const channel = supabase
@@ -195,14 +227,23 @@ export const ChatBot = () => {
         return;
       }
 
-      const { error } = await supabase.from("support_requests").insert({
-        user_id: user.id,
-        user_email: user.email || "",
-        user_name: user.user_metadata?.full_name || user.email || "User",
-        message: supportMessage,
-      });
+      const { data: newRequest, error } = await supabase
+        .from("support_requests")
+        .insert({
+          user_id: user.id,
+          user_email: user.email || "",
+          user_name: user.user_metadata?.full_name || user.email || "User",
+          message: supportMessage,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Set current request ID for typing indicator
+      if (newRequest) {
+        setCurrentRequestId(newRequest.id);
+      }
 
       // Add to chat messages
       setMessages(prev => [...prev, {
@@ -267,6 +308,15 @@ export const ChatBot = () => {
                     </div>
                   </div>
                 ))}
+                {adminTyping && (
+                  <div className="flex justify-start">
+                    <div className="bg-muted rounded-lg px-4 py-2">
+                      <p className="text-sm text-muted-foreground">
+                        Admin is typing...
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <div ref={scrollRef} />
               </div>
             </ScrollArea>

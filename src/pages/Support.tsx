@@ -21,6 +21,7 @@ export default function Support() {
   const [requests, setRequests] = useState<SupportRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [replies, setReplies] = useState<Record<string, string>>({});
+  const [activeTyping, setActiveTyping] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRequests();
@@ -45,6 +46,27 @@ export default function Support() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Track typing status
+  useEffect(() => {
+    if (!activeTyping) return;
+
+    const channel = supabase.channel(`typing-${activeTyping}`);
+    
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({
+          admin_typing: true,
+          request_id: activeTyping,
+          timestamp: new Date().toISOString()
+        });
+      }
+    });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeTyping]);
 
   const fetchRequests = async () => {
     try {
@@ -155,6 +177,8 @@ export default function Support() {
                         onChange={(e) =>
                           setReplies({ ...replies, [request.id]: e.target.value })
                         }
+                        onFocus={() => setActiveTyping(request.id)}
+                        onBlur={() => setActiveTyping(null)}
                         placeholder="Type your reply..."
                         className="min-h-[80px]"
                       />
