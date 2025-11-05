@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Loader2, LogOut, CreditCard, User, DollarSign, Clock, CheckCircle, XCircle, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatBot } from "@/components/ChatBot";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import helaLogo from "@/assets/hela-logo.png";
 
 const Dashboard = () => {
@@ -104,10 +105,13 @@ const Dashboard = () => {
               <p className="text-xs sm:text-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleLogout} size="sm" className="self-end sm:self-auto">
-            <LogOut className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">Logout</span>
-          </Button>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <ThemeToggle />
+            <Button variant="outline" onClick={handleLogout} size="sm">
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
+          </div>
         </div>
 
         {/* Quick Actions */}

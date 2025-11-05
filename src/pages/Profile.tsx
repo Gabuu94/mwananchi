@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, Edit, Save, User, Phone, Hash } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import helaLogo from "@/assets/hela-logo.png";
 
 const Profile = () => {
@@ -77,12 +78,15 @@ const Profile = () => {
     <div className="min-h-screen bg-gradient-soft p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          <Button variant="outline" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto" />
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">My Profile</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Button variant="outline" size="icon" onClick={() => navigate("/dashboard")}>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto" />
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">My Profile</h1>
+          </div>
+          <ThemeToggle />
         </div>
 
         {/* Profile Section */}

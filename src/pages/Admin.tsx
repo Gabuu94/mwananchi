@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, LogOut, Users, FileText, MessageSquare, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import helaLogo from "@/assets/hela-logo.png";
 
 const Admin = () => {
@@ -134,10 +135,13 @@ const Admin = () => {
               <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Manage all loan applications and support</p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleLogout} size="sm" className="self-end sm:self-auto">
-            <LogOut className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">Logout</span>
-          </Button>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <ThemeToggle />
+            <Button variant="outline" onClick={handleLogout} size="sm">
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
