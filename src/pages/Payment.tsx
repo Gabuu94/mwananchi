@@ -103,39 +103,60 @@ const Payment = () => {
         description: "Please check your phone and enter your M-Pesa PIN to complete payment.",
       });
 
-      // Poll for payment status
+      // Listen for real-time payment status updates
       const checkoutRequestId = data.checkoutRequestId;
-      let attempts = 0;
-      const maxAttempts = 30; // Check for 60 seconds (30 * 2 seconds)
+      
+      const channel = supabase
+        .channel('payment-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'loan_disbursements',
+            filter: `transaction_code=eq.${checkoutRequestId}`,
+          },
+          (payload) => {
+            console.log('Payment status update:', payload);
+            
+            if (payload.new.payment_verified) {
+              // Payment successful
+              channel.unsubscribe();
+              
+              // Clear localStorage
+              localStorage.removeItem("currentApplicationId");
+              localStorage.removeItem("helaLoanLimit");
+              localStorage.removeItem("selectedLoanAmount");
+              localStorage.removeItem("processingFee");
 
-      const pollInterval = setInterval(async () => {
-        attempts++;
-        
-        const { data: disbursement } = await supabase
-          .from("loan_disbursements")
-          .select("payment_verified")
-          .eq("transaction_code", checkoutRequestId)
-          .single();
+              toast({
+                title: "Payment Successful! 🎉",
+                description: "Your loan is being disbursed to your M-Pesa number now.",
+              });
+              
+              setTimeout(() => {
+                navigate("/dashboard");
+              }, 2000);
+            } else if (payload.new.payment_verified === false) {
+              // Payment failed
+              channel.unsubscribe();
+              setPaymentInitiated(false);
+              setIsProcessing(false);
+              
+              toast({
+                title: "Payment Failed",
+                description: "Your payment was not successful. Please try again.",
+                variant: "destructive",
+              });
+            }
+          }
+        )
+        .subscribe();
 
-        if (disbursement?.payment_verified) {
-          clearInterval(pollInterval);
-          
-          // Clear localStorage
-          localStorage.removeItem("currentApplicationId");
-          localStorage.removeItem("helaLoanLimit");
-          localStorage.removeItem("selectedLoanAmount");
-          localStorage.removeItem("processingFee");
-
-          toast({
-            title: "Payment Successful! 🎉",
-            description: "Your loan is being disbursed to your M-Pesa number now.",
-          });
-          
-          setTimeout(() => {
-            navigate("/dashboard");
-          }, 2000);
-        } else if (attempts >= maxAttempts) {
-          clearInterval(pollInterval);
+      // Set a timeout for payment confirmation (60 seconds)
+      setTimeout(() => {
+        channel.unsubscribe();
+        if (paymentInitiated) {
           toast({
             title: "Payment Pending",
             description: "Payment is taking longer than expected. Please check your dashboard.",
@@ -143,9 +164,9 @@ const Payment = () => {
           });
           setTimeout(() => {
             navigate("/dashboard");
-          }, 3000);
+          }, 2000);
         }
-      }, 2000);
+      }, 60000);
 
     } catch (error) {
       console.error("Error:", error);
