@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, LogOut, CreditCard, User, DollarSign, Clock, CheckCircle, XCircle, FileText } from "lucide-react";
+import { Loader2, LogOut, CreditCard, User, DollarSign, Clock, CheckCircle, XCircle, FileText, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatBot } from "@/components/ChatBot";
 import helaLogo from "@/assets/hela-logo.png";
@@ -135,6 +135,20 @@ const Dashboard = () => {
                 <div>
                   <h3 className="font-semibold text-lg">View Profile</h3>
                   <p className="text-sm text-muted-foreground">Manage your account details</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/messages")}>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-full bg-primary/10">
+                  <MessageSquare className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Support Messages</h3>
+                  <p className="text-sm text-muted-foreground">View your support requests</p>
                 </div>
               </div>
             </CardContent>

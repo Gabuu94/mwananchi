@@ -19,6 +19,7 @@ import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import AdminApplications from "./pages/AdminApplications";
 import Support from "./pages/Support";
+import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 
@@ -106,6 +107,7 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/applications" element={<AdminApplications />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/messages" element={<Messages />} />
           <Route path="/application" element={<Application />} />
             <Route path="/loan-limit" element={<LoanLimit />} />
             <Route path="/loan-selection" element={<LoanSelection />} />

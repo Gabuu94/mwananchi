@@ -137,9 +137,15 @@ export const ChatBot = () => {
 
       if (error) throw error;
 
-      toast.success("Support request sent! We'll get back to you soon.");
+      toast.success("Support request sent! Check your Messages page to see responses.");
       setSupportMessage("");
       setShowSupportForm(false);
+      
+      // Add a system message to the chat
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: "Your support request has been sent! You can view admin responses on your Messages page from the dashboard."
+      }]);
     } catch (error) {
       console.error("Error sending support request:", error);
       toast.error("Failed to send support request");
