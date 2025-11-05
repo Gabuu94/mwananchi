@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, LogOut, CreditCard, Edit, Save, User, Phone, Hash, DollarSign, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, LogOut, CreditCard, Edit, Save, User, Phone, Hash, DollarSign, Clock, CheckCircle, XCircle, MessageSquare, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatBot } from "@/components/ChatBot";
 import helaLogo from "@/assets/hela-logo.png";
@@ -19,6 +19,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [loanApplications, setLoanApplications] = useState<any[]>([]);
   const [disbursements, setDisbursements] = useState<any[]>([]);
+  const [supportRequests, setSupportRequests] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     fullName: "",
     idNumber: "",
@@ -28,7 +29,32 @@ const Dashboard = () => {
   useEffect(() => {
     checkUser();
     fetchData();
-  }, []);
+    fetchSupportRequests();
+
+    // Realtime subscription for support requests
+    const channel = supabase
+      .channel('user-support-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_requests'
+        },
+        (payload) => {
+          // Only update if it's for the current user
+          const newData = payload.new as any;
+          if (newData && user && newData.user_id === user.id) {
+            fetchSupportRequests();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -74,6 +100,24 @@ const Dashboard = () => {
       toast.error(error.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchSupportRequests = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("support_requests")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setSupportRequests(data || []);
+    } catch (error: any) {
+      console.error("Error fetching support requests:", error);
     }
   };
 
@@ -285,7 +329,115 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+          {/* Support Requests Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Support Requests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {supportRequests.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No support requests yet</p>
+              ) : (
+                <div className="space-y-4">
+                  {supportRequests.map((request) => (
+                    <Card key={request.id} className="border-2">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Badge
+                            variant={request.status === "resolved" ? "default" : "secondary"}
+                            className="flex items-center gap-1"
+                          >
+                            {request.status === "resolved" ? (
+                              <CheckCircle2 className="w-3 h-3" />
+                            ) : (
+                              <Clock className="w-3 h-3" />
+                            )}
+                            {request.status}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(request.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm font-medium mb-1">Your Message:</p>
+                          <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+                            {request.message}
+                          </p>
+                        </div>
+
+                        {request.admin_reply && (
+                          <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-primary">
+                            <p className="text-sm font-medium mb-1 text-primary">Admin Reply:</p>
+                            <p className="text-sm">{request.admin_reply}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Support Requests Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Support Requests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {supportRequests.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No support requests yet</p>
+              ) : (
+                <div className="space-y-4">
+                  {supportRequests.map((request) => (
+                    <Card key={request.id} className="border-2">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Badge
+                            variant={request.status === "resolved" ? "default" : "secondary"}
+                            className="flex items-center gap-1"
+                          >
+                            {request.status === "resolved" ? (
+                              <CheckCircle2 className="w-3 h-3" />
+                            ) : (
+                              <Clock className="w-3 h-3" />
+                            )}
+                            {request.status}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(request.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm font-medium mb-1">Your Message:</p>
+                          <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+                            {request.message}
+                          </p>
+                        </div>
+
+                        {request.admin_reply && (
+                          <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-primary">
+                            <p className="text-sm font-medium mb-1 text-primary">Admin Reply:</p>
+                            <p className="text-sm">{request.admin_reply}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
