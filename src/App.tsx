@@ -15,6 +15,7 @@ import LoanLimit from "./pages/LoanLimit";
 import LoanSelection from "./pages/LoanSelection";
 import Payment from "./pages/Payment";
 import Dashboard from "./pages/Dashboard";
+import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 
@@ -97,8 +98,9 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/terms" element={<Terms />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/application" element={<Application />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/support" element={<Support />} />
+          <Route path="/application" element={<Application />} />
             <Route path="/loan-limit" element={<LoanLimit />} />
             <Route path="/loan-selection" element={<LoanSelection />} />
             <Route path="/payment" element={<Payment />} />

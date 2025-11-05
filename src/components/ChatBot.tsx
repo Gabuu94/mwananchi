@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Headset } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Textarea } from "@/components/ui/textarea";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -15,6 +17,8 @@ export const ChatBot = () => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showSupportForm, setShowSupportForm] = useState(false);
+  const [supportMessage, setSupportMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -111,6 +115,37 @@ export const ChatBot = () => {
     setIsLoading(false);
   };
 
+  const handleSupportRequest = async () => {
+    if (!supportMessage.trim()) {
+      toast.error("Please enter a message");
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please log in to contact support");
+        return;
+      }
+
+      const { error } = await supabase.from("support_requests").insert({
+        user_id: user.id,
+        user_email: user.email || "",
+        user_name: user.user_metadata?.full_name || user.email || "User",
+        message: supportMessage,
+      });
+
+      if (error) throw error;
+
+      toast.success("Support request sent! We'll get back to you soon.");
+      setSupportMessage("");
+      setShowSupportForm(false);
+    } catch (error) {
+      console.error("Error sending support request:", error);
+      toast.error("Failed to send support request");
+    }
+  };
+
   return (
     <>
       {/* Floating Chat Button */}
@@ -161,27 +196,59 @@ export const ChatBot = () => {
             </ScrollArea>
 
             <div className="border-t p-4">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSend();
-                }}
-                className="flex gap-2"
-              >
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your message..."
-                  disabled={isLoading}
-                />
-                <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-                  {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                </Button>
-              </form>
+              {showSupportForm ? (
+                <div className="space-y-3">
+                  <Textarea
+                    value={supportMessage}
+                    onChange={(e) => setSupportMessage(e.target.value)}
+                    placeholder="Describe your issue..."
+                    className="min-h-[80px]"
+                  />
+                  <div className="flex gap-2">
+                    <Button onClick={handleSupportRequest} className="flex-1">
+                      Send Request
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowSupportForm(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex gap-2 mb-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowSupportForm(true)}
+                      className="w-full"
+                    >
+                      <Headset className="w-4 h-4 mr-2" />
+                      Talk to Support
+                    </Button>
+                  </div>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSend();
+                    }}
+                    className="flex gap-2"
+                  >
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Type your message..."
+                      disabled={isLoading}
+                    />
+                    <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+                      {isLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </form>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
