@@ -111,19 +111,32 @@ const Auth = () => {
       const email = `${formData.phoneNumber}@helaloans.com`;
       
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: authData, error } = await supabase.auth.signInWithPassword({
           email,
           password: formData.password,
         });
 
         if (error) throw error;
 
+        // Check if user has admin role
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", authData.user?.id)
+          .eq("role", "admin")
+          .maybeSingle();
+
         toast({
           title: "Login Successful",
           description: "Welcome back!",
         });
         
-        navigate("/dashboard");
+        // Redirect to admin dashboard if user is admin, otherwise to user dashboard
+        if (roleData) {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         // Direct signup
         const { error } = await supabase.auth.signUp({
