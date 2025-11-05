@@ -117,9 +117,9 @@ export default function Support() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Support Requests</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Support Requests</h1>
 
         <div className="space-y-4">
           {requests.length === 0 ? (
@@ -131,18 +131,18 @@ export default function Support() {
           ) : (
             requests.map((request) => (
               <Card key={request.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5" />
-                        {request.user_name}
+                <CardHeader className="pb-3 sm:pb-6">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-0">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                        <span className="truncate">{request.user_name}</span>
                       </CardTitle>
-                      <p className="text-sm text-muted-foreground">{request.user_email}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{request.user_email}</p>
                     </div>
                     <Badge
                       variant={request.status === "resolved" ? "default" : "secondary"}
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 self-start"
                     >
                       {request.status === "resolved" ? (
                         <CheckCircle2 className="w-3 h-3" />

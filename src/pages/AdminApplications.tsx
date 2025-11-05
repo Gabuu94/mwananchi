@@ -61,22 +61,22 @@ const AdminApplications = () => {
     <div className="min-h-screen bg-gradient-soft p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <Button variant="outline" size="icon" onClick={() => navigate("/admin")}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <img src={helaLogo} alt="Hela Loans" className="h-12 w-auto" />
-          <h1 className="text-3xl font-bold">Loan Applications</h1>
+          <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto" />
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Applications</h1>
         </div>
 
         {/* Applications List */}
         <div className="space-y-4">
           {applications.map((app) => (
             <Card key={app.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>{app.full_name}</CardTitle>
-                  <Badge variant={app.status === "approved" ? "default" : app.status === "rejected" ? "destructive" : "secondary"}>
+              <CardHeader className="pb-3 sm:pb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <CardTitle className="text-lg sm:text-xl truncate">{app.full_name}</CardTitle>
+                  <Badge variant={app.status === "approved" ? "default" : app.status === "rejected" ? "destructive" : "secondary"} className="self-start sm:self-auto">
                     {app.status === "approved" && <CheckCircle className="w-3 h-3 mr-1" />}
                     {app.status === "rejected" && <XCircle className="w-3 h-3 mr-1" />}
                     {app.status === "pending" && <Clock className="w-3 h-3 mr-1" />}
@@ -85,30 +85,30 @@ const AdminApplications = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">ID Number</p>
-                    <p className="font-medium">{app.id_number}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">ID Number</p>
+                    <p className="text-sm sm:text-base font-medium break-all">{app.id_number}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">WhatsApp</p>
-                    <p className="font-medium">{app.whatsapp_number}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">WhatsApp</p>
+                    <p className="text-sm sm:text-base font-medium break-all">{app.whatsapp_number}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Loan Limit</p>
-                    <p className="font-medium">KES {app.loan_limit.toLocaleString()}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Loan Limit</p>
+                    <p className="text-sm sm:text-base font-medium">KES {app.loan_limit.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Employment</p>
-                    <p className="font-medium">{app.employment_status}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Employment</p>
+                    <p className="text-sm sm:text-base font-medium">{app.employment_status}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Occupation</p>
-                    <p className="font-medium">{app.occupation}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Occupation</p>
+                    <p className="text-sm sm:text-base font-medium break-words">{app.occupation}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Income Level</p>
-                    <p className="font-medium">{app.income_level}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Income Level</p>
+                    <p className="text-sm sm:text-base font-medium">{app.income_level}</p>
                   </div>
                 </div>
 
@@ -135,12 +135,12 @@ const AdminApplications = () => {
                 </div>
 
                 {app.status === "pending" && (
-                  <div className="flex gap-2 pt-4">
-                    <Button onClick={() => updateApplicationStatus(app.id, "approved")} className="flex-1">
+                  <div className="flex flex-col sm:flex-row gap-2 pt-4">
+                    <Button onClick={() => updateApplicationStatus(app.id, "approved")} className="flex-1" size="sm">
                       <CheckCircle className="w-4 h-4 mr-2" />
                       Approve
                     </Button>
-                    <Button onClick={() => updateApplicationStatus(app.id, "rejected")} variant="destructive" className="flex-1">
+                    <Button onClick={() => updateApplicationStatus(app.id, "rejected")} variant="destructive" className="flex-1" size="sm">
                       <XCircle className="w-4 h-4 mr-2" />
                       Reject
                     </Button>

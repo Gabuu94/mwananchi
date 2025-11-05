@@ -96,17 +96,17 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-soft p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <img src={helaLogo} alt="Hela Loans" className="h-12 w-auto" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto" />
             <div>
-              <h1 className="text-3xl font-bold">My Account</h1>
-              <p className="text-muted-foreground">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">My Account</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none">Welcome back, {user?.user_metadata?.full_name || user?.email}!</p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
+          <Button variant="outline" onClick={handleLogout} size="sm" className="self-end sm:self-auto">
+            <LogOut className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Logout</span>
           </Button>
         </div>
 
@@ -154,15 +154,15 @@ const Dashboard = () => {
               <div className="space-y-4">
                 {activeDisbursements.map((loan) => (
                   <Card key={loan.id} className="border-2">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                         <div>
-                          <p className="text-lg font-bold">KES {loan.loan_amount.toLocaleString()}</p>
-                          <p className="text-sm text-muted-foreground">Disbursed on {new Date(loan.created_at).toLocaleDateString()}</p>
+                          <p className="text-base sm:text-lg font-bold">KES {loan.loan_amount.toLocaleString()}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Disbursed on {new Date(loan.created_at).toLocaleDateString()}</p>
                         </div>
-                        <Badge className="bg-green-500">Active</Badge>
+                        <Badge className="bg-green-500 self-start sm:self-auto">Active</Badge>
                       </div>
-                      <Button className="w-full mt-2" onClick={() => navigate("/payment")}>
+                      <Button className="w-full mt-2" onClick={() => navigate("/payment")} size="sm">
                         Repay Loan
                       </Button>
                     </CardContent>
@@ -185,12 +185,14 @@ const Dashboard = () => {
             <CardContent>
               <div className="space-y-3">
                 {pendingApplications.map((app) => (
-                  <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Loan Limit: KES {app.loan_limit.toLocaleString()}</p>
-                      <p className="text-sm text-muted-foreground">{new Date(app.created_at).toLocaleDateString()}</p>
+                  <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 sm:p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <p className="text-sm sm:text-base font-medium">KES {app.loan_limit.toLocaleString()}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{new Date(app.created_at).toLocaleDateString()}</p>
                     </div>
-                    {getStatusBadge(app.status)}
+                    <div className="self-start sm:self-auto">
+                      {getStatusBadge(app.status)}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -215,12 +217,14 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-3">
                 {loanApplications.map((app) => (
-                  <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Loan Limit: KES {app.loan_limit.toLocaleString()}</p>
-                      <p className="text-sm text-muted-foreground">{new Date(app.created_at).toLocaleDateString()}</p>
+                  <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 sm:p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <p className="text-sm sm:text-base font-medium">KES {app.loan_limit.toLocaleString()}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{new Date(app.created_at).toLocaleDateString()}</p>
                     </div>
-                    {getStatusBadge(app.status)}
+                    <div className="self-start sm:self-auto">
+                      {getStatusBadge(app.status)}
+                    </div>
                   </div>
                 ))}
               </div>

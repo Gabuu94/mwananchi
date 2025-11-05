@@ -77,27 +77,25 @@ const Profile = () => {
     <div className="min-h-screen bg-gradient-soft p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <img src={helaLogo} alt="Hela Loans" className="h-12 w-auto" />
-            <h1 className="text-3xl font-bold">My Profile</h1>
-          </div>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Button variant="outline" size="icon" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto" />
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">My Profile</h1>
         </div>
 
         {/* Profile Section */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <User className="w-5 h-5" />
                 Personal Information
               </CardTitle>
             </div>
             {!isEditing && (
-              <Button onClick={() => setIsEditing(true)} variant="outline">
+              <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </Button>
@@ -156,8 +154,8 @@ const Profile = () => {
             </div>
 
             {isEditing && (
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleSaveProfile} disabled={isSaving}>
+              <div className="flex flex-col sm:flex-row gap-2 pt-4">
+                <Button onClick={handleSaveProfile} disabled={isSaving} className="flex-1" size="sm">
                   {isSaving ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
@@ -168,7 +166,7 @@ const Profile = () => {
                 <Button variant="outline" onClick={() => {
                   setIsEditing(false);
                   checkUser();
-                }}>
+                }} className="flex-1" size="sm">
                   Cancel
                 </Button>
               </div>
