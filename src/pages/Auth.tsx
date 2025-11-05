@@ -123,7 +123,7 @@ const Auth = () => {
           description: "Welcome back!",
         });
         
-        navigate("/terms");
+        navigate("/dashboard");
       } else {
         // Direct signup
         const { error } = await supabase.auth.signUp({
@@ -145,7 +145,7 @@ const Auth = () => {
           description: "Welcome to Hela Loans!",
         });
         
-        navigate("/terms");
+        navigate("/dashboard");
       }
     } catch (error: any) {
       toast({
