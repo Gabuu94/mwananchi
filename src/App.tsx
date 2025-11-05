@@ -90,39 +90,41 @@ const LoanNotifications = () => {
   return null;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const App = () => {
+  return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <LoanNotifications />
-          <div className="min-h-screen flex flex-col">
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/terms" element={<Terms />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/applications" element={<AdminApplications />} />
-            <Route path="/support" element={<Support />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/application" element={<Application />} />
-              <Route path="/loan-limit" element={<LoanLimit />} />
-              <Route path="/loan-selection" element={<LoanSelection />} />
-              <Route path="/payment" element={<Payment />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Footer />
-          </div>
-        </BrowserRouter>
-      </TooltipProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <LoanNotifications />
+            <div className="min-h-screen flex flex-col">
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/admin/applications" element={<AdminApplications />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/application" element={<Application />} />
+                <Route path="/loan-limit" element={<LoanLimit />} />
+                <Route path="/loan-selection" element={<LoanSelection />} />
+                <Route path="/payment" element={<Payment />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Footer />
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
     </ThemeProvider>
-  </QueryClientProvider>
-);
+  );
+};
 
 export default App;
