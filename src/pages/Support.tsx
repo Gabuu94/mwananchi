@@ -24,6 +24,26 @@ export default function Support() {
 
   useEffect(() => {
     fetchRequests();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('support-requests-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_requests'
+        },
+        () => {
+          fetchRequests();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchRequests = async () => {
