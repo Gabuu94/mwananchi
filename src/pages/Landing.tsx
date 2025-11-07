@@ -65,7 +65,7 @@ const Landing = () => {
             </div>
 
             <div className="bg-card p-6 rounded-2xl shadow-card hover:shadow-soft transition-all duration-300 hover:-translate-y-2">
-              <div className="w-12 h-12 bg-accent/30 rounded-xl flex items-center justify-center mb-4 mx-auto p-2">
+              <div className="w-12 h-12 bg-accent/30 rounded-xl flex items-center justify-center mb-4 mx-auto p-2.5">
                 <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-contain" />
               </div>
               <h3 className="font-bold text-lg mb-2">Simple Process</h3>

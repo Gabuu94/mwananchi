@@ -17,7 +17,7 @@ export const ComingSoonDialog = ({ open, onOpenChange }: ComingSoonDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md border-2 border-primary/20">
         <DialogHeader className="text-center">
-          <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center animate-bounce-soft p-2">
+          <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center animate-bounce-soft p-4">
             <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-contain" />
           </div>
           <DialogTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
