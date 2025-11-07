@@ -27,7 +27,7 @@ const Landing = () => {
               Fast, Friendly, and Reliable Loans for Everyone!
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
-              Get the financial support you need in minutes. Simple application, quick approval, and transparent terms.
+              Get the financial support you need in minutes with simple application and quick approval. Plus, grow your wealth with our Money Market Fund savings—earn competitive returns while building your financial future.
             </p>
           </div>
 
