@@ -194,6 +194,10 @@ const Dashboard = () => {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Build your savings history to qualify for higher loan limits</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                   <span>Daily compounding interest for maximum growth</span>
                 </li>
                 <li className="flex items-start gap-2">
