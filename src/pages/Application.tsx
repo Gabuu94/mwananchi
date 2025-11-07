@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { FileText, Loader2 } from "lucide-react";
-import helabetIcon from "@/assets/helabet-icon.png";
+import helaPesaLogo from "@/assets/hela-pesa-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -471,8 +471,8 @@ const Application = () => {
         <Dialog open={isLoading} onOpenChange={() => {}}>
           <DialogContent className="sm:max-w-md [&>button]:hidden">
             <DialogHeader>
-              <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse p-3">
-                <img src={helabetIcon} alt="Hela" className="w-full h-full object-contain animate-spin" style={{ animationDuration: '3s' }} />
+              <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse p-2">
+                <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-contain animate-spin" style={{ animationDuration: '3s' }} />
               </div>
               <DialogTitle className="text-center text-2xl">
                 Calculating Your Loan Limit
