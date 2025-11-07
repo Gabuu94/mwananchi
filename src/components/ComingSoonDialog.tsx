@@ -21,7 +21,7 @@ export const ComingSoonDialog = ({ open, onOpenChange }: ComingSoonDialogProps) 
             <Sparkles className="w-10 h-10 text-primary-foreground" />
           </div>
           <DialogTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Coming Soon! ✨
+            Coming Soon
           </DialogTitle>
           <DialogDescription className="text-base pt-2">
             We're working hard to bring you an amazing savings experience. Stay tuned for exciting updates!
