@@ -471,8 +471,8 @@ const Application = () => {
         <Dialog open={isLoading} onOpenChange={() => {}}>
           <DialogContent className="sm:max-w-md [&>button]:hidden">
             <DialogHeader>
-              <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse p-4">
-                <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-contain animate-spin" style={{ animationDuration: '3s' }} />
+              <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse overflow-hidden">
+                <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-cover animate-spin" style={{ animationDuration: '3s' }} />
               </div>
               <DialogTitle className="text-center text-2xl">
                 Calculating Your Loan Limit
