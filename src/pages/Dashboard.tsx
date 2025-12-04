@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { UserMenu } from "@/components/UserMenu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import helaLogo from "@/assets/hela-logo.png";
 
 interface SavingsDeposit {
@@ -31,6 +32,8 @@ interface Withdrawal {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const historyRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [loanApplications, setLoanApplications] = useState<any[]>([]);
@@ -43,11 +46,30 @@ const Dashboard = () => {
   const [withdrawPhone, setWithdrawPhone] = useState("");
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [showRepayDialog, setShowRepayDialog] = useState(false);
+  const [selectedLoanId, setSelectedLoanId] = useState<string>("");
+  const [repayAmount, setRepayAmount] = useState("");
 
   useEffect(() => {
     checkUser();
     fetchData();
   }, []);
+
+  useEffect(() => {
+    // Handle navigation state
+    const state = location.state as { openRepay?: boolean; scrollToHistory?: boolean } | null;
+    if (state?.openRepay) {
+      setShowRepayDialog(true);
+      // Clear the state
+      navigate(location.pathname, { replace: true });
+    }
+    if (state?.scrollToHistory && historyRef.current) {
+      setTimeout(() => {
+        historyRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -442,7 +464,7 @@ const Dashboard = () => {
         )}
 
         {/* Loan History */}
-        <Card className="border-2 border-accent/10">
+        <Card className="border-2 border-accent/10" ref={historyRef}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-accent-foreground" />
@@ -545,6 +567,74 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Repay Loan Dialog */}
+      <Dialog open={showRepayDialog} onOpenChange={setShowRepayDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Repay Loan</DialogTitle>
+            <DialogDescription>
+              Select a loan and enter the amount you want to repay.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {activeDisbursements.length === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground">You have no active loans to repay.</p>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label>Select Loan</Label>
+                  <Select value={selectedLoanId} onValueChange={setSelectedLoanId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a loan to repay" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeDisbursements.map((loan) => (
+                        <SelectItem key={loan.id} value={loan.id}>
+                          KES {loan.loan_amount.toLocaleString()} - {new Date(loan.created_at).toLocaleDateString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="repayAmount">Repayment Amount (KES)</Label>
+                  <Input
+                    id="repayAmount"
+                    type="number"
+                    placeholder="Enter amount to repay"
+                    value={repayAmount}
+                    onChange={(e) => setRepayAmount(e.target.value)}
+                    min={1}
+                  />
+                </div>
+                <Button 
+                  onClick={() => {
+                    if (!selectedLoanId) {
+                      toast.error("Please select a loan to repay");
+                      return;
+                    }
+                    if (!repayAmount || parseInt(repayAmount) < 1) {
+                      toast.error("Please enter a valid repayment amount");
+                      return;
+                    }
+                    localStorage.setItem("repayLoanId", selectedLoanId);
+                    localStorage.setItem("repayAmount", repayAmount);
+                    setShowRepayDialog(false);
+                    navigate("/payment", { state: { isRepayment: true } });
+                  }} 
+                  className="w-full bg-gradient-primary"
+                  disabled={!selectedLoanId || !repayAmount}
+                >
+                  Proceed to Payment
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Withdrawal Dialog */}
       <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
