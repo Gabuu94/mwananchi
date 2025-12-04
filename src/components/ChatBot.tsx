@@ -278,7 +278,7 @@ export const ChatBot = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 w-96 h-[500px] shadow-xl z-50 flex flex-col">
+        <Card className="fixed inset-4 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-96 sm:h-[500px] h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] shadow-xl z-50 flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
