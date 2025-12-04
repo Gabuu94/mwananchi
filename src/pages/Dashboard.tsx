@@ -8,7 +8,9 @@ import { Loader2, CreditCard, User, DollarSign, Clock, CheckCircle, XCircle, Fil
 import { Badge } from "@/components/ui/badge";
 import { ChatBot } from "@/components/ChatBot";
 import { UserMenu } from "@/components/UserMenu";
-import { ComingSoonDialog } from "@/components/ComingSoonDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import helaLogo from "@/assets/hela-logo.png";
 
 interface SavingsDeposit {
@@ -19,16 +21,28 @@ interface SavingsDeposit {
   created_at: string;
 }
 
+interface Withdrawal {
+  id: string;
+  amount: number;
+  phone_number: string;
+  status: string;
+  created_at: string;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [loanApplications, setLoanApplications] = useState<any[]>([]);
   const [disbursements, setDisbursements] = useState<any[]>([]);
-  const [showComingSoon, setShowComingSoon] = useState(false);
   const [savingsBalance, setSavingsBalance] = useState(0);
   const [savingsDeposits, setSavingsDeposits] = useState<SavingsDeposit[]>([]);
   const [showBalance, setShowBalance] = useState(true);
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawPhone, setWithdrawPhone] = useState("");
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
 
   useEffect(() => {
     checkUser();
@@ -93,10 +107,68 @@ const Dashboard = () => {
         setSavingsDeposits(deposits);
       }
 
+      // Fetch withdrawals
+      const { data: withdrawalData, error: withdrawalError } = await supabase
+        .from("withdrawals")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (!withdrawalError && withdrawalData) {
+        setWithdrawals(withdrawalData as Withdrawal[]);
+      }
+
+      // Auto-fill phone number from latest loan application
+      if (applications && applications.length > 0) {
+        setWithdrawPhone(applications[0].whatsapp_number || "");
+      }
+
     } catch (error: any) {
       toast.error(error.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    const amount = parseInt(withdrawAmount);
+    
+    if (!amount || amount < 500) {
+      toast.error("Minimum withdrawal amount is KES 500");
+      return;
+    }
+    
+    if (amount > savingsBalance) {
+      toast.error("Insufficient balance. Your available balance is KES " + savingsBalance.toLocaleString());
+      return;
+    }
+    
+    if (!withdrawPhone || withdrawPhone.length < 10) {
+      toast.error("Please enter a valid phone number");
+      return;
+    }
+
+    setIsWithdrawing(true);
+    try {
+      const { error } = await supabase
+        .from("withdrawals")
+        .insert({
+          user_id: user.id,
+          amount: amount,
+          phone_number: withdrawPhone,
+          status: "pending"
+        });
+
+      if (error) throw error;
+
+      toast.success("Withdrawal request submitted successfully! It will be processed shortly.");
+      setShowWithdrawDialog(false);
+      setWithdrawAmount("");
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsWithdrawing(false);
     }
   };
 
@@ -202,7 +274,7 @@ const Dashboard = () => {
                 <Button 
                   variant="secondary" 
                   size="sm"
-                  onClick={() => setShowComingSoon(true)}
+                  onClick={() => setShowWithdrawDialog(true)}
                   className="bg-white/20 hover:bg-white/30 text-white border-0"
                 >
                   <ArrowDownRight className="w-4 h-4 mr-1" />
@@ -408,9 +480,126 @@ const Dashboard = () => {
             )}
           </CardContent>
         </Card>
+        {/* Withdrawal History */}
+        <Card className="border-2 border-orange-500/20">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <ArrowDownRight className="w-5 h-5 text-orange-500" />
+                Withdrawal History
+              </CardTitle>
+              <Badge variant="outline" className="text-orange-500 border-orange-500/30">
+                {withdrawals.length} requests
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {withdrawals.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-orange-500/10 flex items-center justify-center">
+                  <ArrowDownRight className="w-8 h-8 text-orange-500" />
+                </div>
+                <p className="text-muted-foreground mb-2">No withdrawal requests yet</p>
+                <p className="text-sm text-muted-foreground">Request a withdrawal when you have savings</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {withdrawals.map((withdrawal) => (
+                  <div 
+                    key={withdrawal.id} 
+                    className="flex items-center justify-between p-4 border-2 border-muted rounded-2xl hover:border-orange-500/20 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${
+                        withdrawal.status === 'completed' 
+                          ? 'bg-green-100 dark:bg-green-900/30' 
+                          : withdrawal.status === 'rejected'
+                          ? 'bg-red-100 dark:bg-red-900/30'
+                          : 'bg-orange-100 dark:bg-orange-900/30'
+                      }`}>
+                        <ArrowDownRight className={`w-5 h-5 ${
+                          withdrawal.status === 'completed' 
+                            ? 'text-green-600' 
+                            : withdrawal.status === 'rejected'
+                            ? 'text-red-600'
+                            : 'text-orange-600'
+                        }`} />
+                      </div>
+                      <div>
+                        <p className="font-semibold">KES {withdrawal.amount.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {withdrawal.phone_number} • {new Date(withdrawal.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge 
+                      variant={withdrawal.status === 'completed' ? "default" : withdrawal.status === 'rejected' ? "destructive" : "secondary"}
+                      className={withdrawal.status === 'completed' ? "bg-green-600" : ""}
+                    >
+                      {withdrawal.status === 'completed' ? "Completed" : withdrawal.status === 'rejected' ? "Rejected" : "Pending"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      <ComingSoonDialog open={showComingSoon} onOpenChange={setShowComingSoon} />
+      {/* Withdrawal Dialog */}
+      <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Withdraw Savings</DialogTitle>
+            <DialogDescription>
+              Enter the amount you want to withdraw. Minimum KES 500.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="text-center p-4 bg-muted rounded-xl">
+              <p className="text-sm text-muted-foreground">Available Balance</p>
+              <p className="text-2xl font-bold text-primary">KES {savingsBalance.toLocaleString()}</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="amount">Withdrawal Amount (KES)</Label>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="Enter amount (min 500)"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                min={500}
+                max={savingsBalance}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">M-Pesa Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="e.g. 0712345678"
+                value={withdrawPhone}
+                onChange={(e) => setWithdrawPhone(e.target.value)}
+              />
+            </div>
+            <Button 
+              onClick={handleWithdraw} 
+              className="w-full bg-gradient-primary"
+              disabled={isWithdrawing}
+            >
+              {isWithdrawing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Submit Withdrawal Request"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <ChatBot />
     </div>
   );
