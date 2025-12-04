@@ -72,10 +72,9 @@ const LoanSelection = () => {
   };
 
   const quickActions = [
-    { icon: Banknote, label: "Loan", active: true },
-    { icon: PiggyBank, label: "Savings", active: false },
-    { icon: CreditCard, label: "Pay", active: false },
-    { icon: FileText, label: "History", active: false },
+    { icon: PiggyBank, label: "Savings", active: false, onClick: () => navigate("/payment") },
+    { icon: CreditCard, label: "Pay", active: false, onClick: () => navigate("/dashboard", { state: { openRepay: true } }) },
+    { icon: FileText, label: "History", active: false, onClick: () => navigate("/dashboard", { state: { scrollToHistory: true } }) },
   ];
 
   const hasSufficientSavings = savingsBalance >= 500;
@@ -124,7 +123,11 @@ const LoanSelection = () => {
         {/* Quick Action Buttons */}
         <div className="flex justify-center gap-6">
           {quickActions.map((action, index) => (
-            <div key={index} className="flex flex-col items-center gap-2">
+            <button 
+              key={index} 
+              className="flex flex-col items-center gap-2"
+              onClick={action.onClick}
+            >
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
                 action.active 
                   ? "bg-white shadow-lg" 
@@ -135,7 +138,7 @@ const LoanSelection = () => {
               <span className={`text-xs font-medium ${action.active ? "text-white" : "text-white/70"}`}>
                 {action.label}
               </span>
-            </div>
+            </button>
           ))}
         </div>
       </div>
