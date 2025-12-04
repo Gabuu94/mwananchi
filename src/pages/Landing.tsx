@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Shield, Zap } from "lucide-react";
 import helaPesaLogo from "@/assets/hela-pesa-logo.png";
 import helaLogo from "@/assets/hela-logo.png";
+import DecorativeBackground from "@/components/DecorativeBackground";
 
 const Landing = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
+    <div className="min-h-screen bg-gradient-soft relative">
+      <DecorativeBackground />
       {/* Hero Section */}
       <main className="container mx-auto px-4 py-8 md:py-16">
         <div className="flex flex-col items-center text-center space-y-8 max-w-3xl mx-auto">
