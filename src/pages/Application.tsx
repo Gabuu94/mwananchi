@@ -469,25 +469,25 @@ const Application = () => {
         </Card>
 
         <Dialog open={isLoading} onOpenChange={() => {}}>
-          <DialogContent className="sm:max-w-md [&>button]:hidden">
-            <DialogHeader>
-              <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse overflow-hidden">
-                <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-cover animate-spin" style={{ animationDuration: '3s' }} />
+          <DialogContent className="max-w-[320px] sm:max-w-sm rounded-3xl border-0 shadow-2xl bg-card p-8 [&>button]:hidden">
+            <DialogHeader className="space-y-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center mx-auto shadow-lg overflow-hidden">
+                <img src={helaPesaLogo} alt="Hela Pesa" className="w-14 h-14 object-contain animate-spin" style={{ animationDuration: '3s' }} />
               </div>
-              <DialogTitle className="text-center text-2xl">
+              <DialogTitle className="text-center text-xl font-bold">
                 Calculating Your Loan Limit
               </DialogTitle>
-              <DialogDescription className="text-center space-y-3 pt-2">
-                <p className="text-base font-medium text-foreground">
+              <DialogDescription className="text-center space-y-3">
+                <p className="text-sm font-semibold text-foreground">
                   Please don't exit this page!
                 </p>
-                <p className="text-sm">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   We're analyzing your information to provide you with the best personalized loan offer...
                 </p>
                 <div className="flex items-center justify-center gap-2 pt-4">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  <div className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
               </DialogDescription>
             </DialogHeader>
