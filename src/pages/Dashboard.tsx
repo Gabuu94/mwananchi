@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, CreditCard, User, DollarSign, Clock, CheckCircle, XCircle, FileText, PiggyBank, TrendingUp, Shield, Wallet, ArrowUpRight, ArrowDownRight, Eye, EyeOff } from "lucide-react";
+import { Loader2, CreditCard, User, DollarSign, Clock, CheckCircle, XCircle, FileText, PiggyBank, Wallet, ArrowUpRight, ArrowDownRight, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatBot } from "@/components/ChatBot";
 import { UserMenu } from "@/components/UserMenu";
@@ -293,91 +293,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Savings Section - HELA MMF */}
-        <Card className="border-2 border-accent/30 shadow-card overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-primary opacity-10 rounded-full blur-3xl" />
-          <CardHeader className="relative">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-accent/20">
-                <PiggyBank className="w-6 h-6 text-accent-foreground" />
-              </div>
-              <div>
-                <CardTitle className="text-2xl">Start Saving with HELA MMF</CardTitle>
-                <CardDescription className="text-base">
-                  Grow your money with Kenya's trusted Money Market Fund
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="relative space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  <h4 className="font-semibold">High Returns</h4>
-                </div>
-                <p className="text-2xl font-bold text-primary">17.24%*</p>
-                <p className="text-xs text-muted-foreground mt-1">Effective Annual Yield</p>
-              </div>
-              
-              <div className="p-4 rounded-2xl bg-secondary/5 border border-secondary/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-5 h-5 text-secondary-foreground" />
-                  <h4 className="font-semibold">Low Entry</h4>
-                </div>
-                <p className="text-2xl font-bold text-secondary-foreground">KES 100</p>
-                <p className="text-xs text-muted-foreground mt-1">Minimum Investment</p>
-              </div>
-              
-              <div className="p-4 rounded-2xl bg-accent/5 border border-accent/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <Shield className="w-5 h-5 text-accent-foreground" />
-                  <h4 className="font-semibold">Flexible</h4>
-                </div>
-                <p className="text-2xl font-bold text-accent-foreground">No Lock-in</p>
-                <p className="text-xs text-muted-foreground mt-1">Withdraw Anytime</p>
-              </div>
-            </div>
-
-            <div className="space-y-3 p-4 rounded-2xl bg-muted/30">
-              <h4 className="font-semibold text-sm">Key Benefits:</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Build your savings history to qualify for higher loan limits</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Daily compounding interest for maximum growth</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Regulated by Capital Markets Authority (CMA)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Management fee of only 2.0% p.a</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Start with as little as KES 100 and top up anytime</span>
-                </li>
-              </ul>
-            </div>
-
-            <Button 
-              onClick={() => navigate("/payment")}
-              className="w-full bg-gradient-primary hover:opacity-90 transition-opacity text-lg py-6 rounded-2xl shadow-soft"
-            >
-              <PiggyBank className="w-5 h-5 mr-2" />
-              Save Now
-            </Button>
-
-            <p className="text-xs text-center text-muted-foreground">
-              *Returns are subject to market conditions. Past performance is not indicative of future results.
-            </p>
-          </CardContent>
-        </Card>
 
         {/* Existing Loans */}
         {activeDisbursements.length > 0 && (
