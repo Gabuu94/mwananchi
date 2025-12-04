@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 
-const TILL_NUMBER = "8827395";
+const TILL_NUMBER = "6933589";
 const MIN_SAVINGS_BALANCE = 500;
 
 const Payment = () => {
