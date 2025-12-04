@@ -189,15 +189,26 @@ const Dashboard = () => {
                   </>
                 )}
               </div>
-              <Button 
-                variant="secondary" 
-                size="sm"
-                onClick={() => navigate("/payment")}
-                className="bg-white/20 hover:bg-white/30 text-white border-0"
-              >
-                <ArrowUpRight className="w-4 h-4 mr-1" />
-                Save Now
-              </Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={() => navigate("/payment")}
+                  className="bg-white/20 hover:bg-white/30 text-white border-0"
+                >
+                  <ArrowUpRight className="w-4 h-4 mr-1" />
+                  Save
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={() => setShowComingSoon(true)}
+                  className="bg-white/20 hover:bg-white/30 text-white border-0"
+                >
+                  <ArrowDownRight className="w-4 h-4 mr-1" />
+                  Withdraw
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
