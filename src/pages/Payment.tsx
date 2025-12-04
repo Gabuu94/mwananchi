@@ -499,7 +499,7 @@ const Payment = () => {
         <Card className="bg-card/50">
           <CardContent className="py-6">
             <p className="text-sm text-center text-muted-foreground">
-              Need help? Contact us on WhatsApp: <strong className="text-foreground">0700 000 000</strong>
+              Need help? Contact us on WhatsApp: <strong className="text-foreground">0755440358</strong>
             </p>
           </CardContent>
         </Card>
