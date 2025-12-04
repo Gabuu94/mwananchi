@@ -8,6 +8,7 @@ import { LogIn, UserPlus, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import helaLogo from "@/assets/hela-logo.png";
+import DecorativeBackground from "@/components/DecorativeBackground";
 import {
   InputOTP,
   InputOTPGroup,
@@ -173,8 +174,9 @@ const Auth = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-card">
+    <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-4 relative">
+      <DecorativeBackground />
+      <Card className="w-full max-w-md shadow-card relative z-10">
         <CardHeader className="text-center space-y-4">
           <img 
             src={helaLogo} 
