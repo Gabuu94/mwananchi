@@ -4,15 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { useNavigate } from "react-router-dom";
-import { Banknote, CreditCard, PiggyBank, FileText, ArrowRight, Info, Eye, EyeOff } from "lucide-react";
+import { Banknote, CreditCard, PiggyBank, FileText, ArrowRight, Info, Eye, EyeOff, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import helaPesaLogo from "@/assets/hela-pesa-logo.png";
 
 const LoanSelection = () => {
   const [loanLimit, setLoanLimit] = useState(0);
   const [selectedAmount, setSelectedAmount] = useState(0);
-  const [processingFee, setProcessingFee] = useState(0);
   const [showBalance, setShowBalance] = useState(true);
+  const [savingsBalance, setSavingsBalance] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -26,17 +27,24 @@ const LoanSelection = () => {
     const limitAmount = parseInt(limit);
     setLoanLimit(limitAmount);
     setSelectedAmount(Math.floor(limitAmount / 2));
+    
+    fetchSavingsBalance();
   }, [navigate]);
 
-  useEffect(() => {
-    if (selectedAmount > 0) {
-      const minFee = 399;
-      const maxFee = 1399;
-      const percentage = selectedAmount / loanLimit;
-      const calculatedFee = Math.floor(minFee + (percentage * (maxFee - minFee)));
-      setProcessingFee(calculatedFee);
+  const fetchSavingsBalance = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("user_savings")
+      .select("balance")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (data) {
+      setSavingsBalance(data.balance);
     }
-  }, [selectedAmount, loanLimit]);
+  };
 
   const handleSliderChange = (value: number[]) => {
     setSelectedAmount(value[0]);
@@ -60,7 +68,6 @@ const LoanSelection = () => {
     }
 
     localStorage.setItem("selectedLoanAmount", selectedAmount.toString());
-    localStorage.setItem("processingFee", processingFee.toString());
     navigate("/payment");
   };
 
@@ -70,6 +77,8 @@ const LoanSelection = () => {
     { icon: CreditCard, label: "Pay", active: false },
     { icon: FileText, label: "History", active: false },
   ];
+
+  const hasSufficientSavings = savingsBalance >= 500;
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,7 +115,10 @@ const LoanSelection = () => {
               )}
             </button>
           </div>
-          <p className="text-sm opacity-70 mt-1">Processing Fee: KES {processingFee.toLocaleString()}</p>
+          <div className="flex items-center justify-center gap-2 mt-2 text-sm opacity-80">
+            <Wallet className="w-4 h-4" />
+            <span>Savings: KES {savingsBalance.toLocaleString()}</span>
+          </div>
         </div>
 
         {/* Quick Action Buttons */}
@@ -191,10 +203,6 @@ const LoanSelection = () => {
                 <span className="text-muted-foreground">Loan Amount</span>
                 <span className="font-semibold">KES {selectedAmount.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-border/50">
-                <span className="text-muted-foreground">Processing Fee</span>
-                <span className="font-semibold">KES {processingFee.toLocaleString()}</span>
-              </div>
               <div className="flex justify-between items-center py-2">
                 <span className="font-semibold">You'll Receive</span>
                 <span className="font-bold text-xl text-primary">KES {selectedAmount.toLocaleString()}</span>
@@ -203,12 +211,25 @@ const LoanSelection = () => {
           </CardContent>
         </Card>
 
-        {/* Info Note */}
-        <div className="flex items-start gap-3 p-4 bg-accent/20 rounded-xl mb-6">
-          <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-muted-foreground">
-            A one-time processing fee is required to activate your loan. This covers verification and disbursement costs.
-          </p>
+        {/* Savings Requirement Info */}
+        <div className={`flex items-start gap-3 p-4 rounded-xl mb-6 ${
+          hasSufficientSavings 
+            ? "bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800" 
+            : "bg-accent/20"
+        }`}>
+          <Wallet className={`w-5 h-5 mt-0.5 flex-shrink-0 ${hasSufficientSavings ? "text-green-600" : "text-primary"}`} />
+          <div>
+            {hasSufficientSavings ? (
+              <p className="text-sm text-green-700 dark:text-green-400">
+                Your savings balance qualifies you for loan disbursement.
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                You need at least <strong>KES 500</strong> in savings to proceed with disbursement. 
+                Current balance: <strong>KES {savingsBalance.toLocaleString()}</strong>
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Proceed Button */}
@@ -219,7 +240,7 @@ const LoanSelection = () => {
           onClick={handleProceed}
           disabled={selectedAmount < 1000}
         >
-          <span>Proceed to Payment</span>
+          <span>{hasSufficientSavings ? "Proceed to Disbursement" : "Proceed to Fund Savings"}</span>
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
       </div>
