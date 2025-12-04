@@ -255,11 +255,11 @@ const Dashboard = () => {
                 <p className="text-muted-foreground mb-2">No savings deposits yet</p>
                 <p className="text-sm text-muted-foreground mb-4">Start saving to unlock loan disbursement</p>
                 <Button 
-                  onClick={() => navigate("/application")}
+                  onClick={() => navigate("/payment")}
                   variant="outline"
                   className="rounded-xl"
                 >
-                  Get Started
+                  Save Now
                 </Button>
               </div>
             ) : (
