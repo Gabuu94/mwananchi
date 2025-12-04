@@ -118,6 +118,36 @@ export type Database = {
           },
         ]
       }
+      savings_deposits: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          mpesa_message: string
+          transaction_code: string | null
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          mpesa_message: string
+          transaction_code?: string | null
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          mpesa_message?: string
+          transaction_code?: string | null
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       support_requests: {
         Row: {
           admin_reply: string | null
@@ -171,6 +201,30 @@ export type Database = {
           created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_savings: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
