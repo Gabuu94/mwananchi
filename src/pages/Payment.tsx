@@ -382,16 +382,16 @@ const Payment = () => {
                       <span className="font-bold text-primary min-w-6">3.</span>
                       <div className="flex-1">
                         <span>Enter Till Number: </span>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="font-bold text-lg text-primary bg-primary/10 px-4 py-2 rounded-lg">{TILL_NUMBER}</span>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <span className="font-bold text-lg text-primary bg-primary/10 px-3 py-2 rounded-lg">{TILL_NUMBER}</span>
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={copyTillNumber}
-                            className="gap-1"
+                            className="gap-1 shrink-0"
                           >
                             {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                            {copied ? "Copied!" : "Copy"}
+                            <span className="hidden sm:inline">{copied ? "Copied!" : "Copy"}</span>
                           </Button>
                         </div>
                       </div>
@@ -430,10 +430,10 @@ const Payment = () => {
                     Paste M-Pesa Confirmation Message
                   </label>
                   <Textarea
-                    placeholder="Paste your M-Pesa confirmation message here...&#10;&#10;Example: ABC123XYZ Confirmed. Ksh500.00 sent to HELA PESA for account..."
+                    placeholder="Paste M-Pesa message here...&#10;&#10;e.g. ABC123 Confirmed. Ksh500 to NOVARA INVESTMENTS..."
                     value={mpesaMessage}
                     onChange={(e) => setMpesaMessage(e.target.value)}
-                    className="min-h-[120px] resize-none"
+                    className="min-h-[100px] resize-none text-sm"
                     disabled={isVerifying}
                   />
                   <p className="text-xs text-muted-foreground">
