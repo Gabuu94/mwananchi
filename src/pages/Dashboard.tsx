@@ -4,12 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, CreditCard, User, DollarSign, Clock, CheckCircle, XCircle, FileText, PiggyBank, TrendingUp, Shield } from "lucide-react";
+import { Loader2, CreditCard, User, DollarSign, Clock, CheckCircle, XCircle, FileText, PiggyBank, TrendingUp, Shield, Wallet, ArrowUpRight, ArrowDownRight, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatBot } from "@/components/ChatBot";
 import { UserMenu } from "@/components/UserMenu";
 import { ComingSoonDialog } from "@/components/ComingSoonDialog";
 import helaLogo from "@/assets/hela-logo.png";
+
+interface SavingsDeposit {
+  id: string;
+  amount: number;
+  transaction_code: string | null;
+  verified: boolean;
+  created_at: string;
+}
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +26,9 @@ const Dashboard = () => {
   const [loanApplications, setLoanApplications] = useState<any[]>([]);
   const [disbursements, setDisbursements] = useState<any[]>([]);
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const [savingsBalance, setSavingsBalance] = useState(0);
+  const [savingsDeposits, setSavingsDeposits] = useState<SavingsDeposit[]>([]);
+  const [showBalance, setShowBalance] = useState(true);
 
   useEffect(() => {
     checkUser();
@@ -59,6 +70,29 @@ const Dashboard = () => {
         if (disbError) throw disbError;
         setDisbursements(disb || []);
       }
+
+      // Fetch savings balance
+      const { data: savings, error: savingsError } = await supabase
+        .from("user_savings")
+        .select("balance")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!savingsError && savings) {
+        setSavingsBalance(savings.balance);
+      }
+
+      // Fetch savings deposits history
+      const { data: deposits, error: depositsError } = await supabase
+        .from("savings_deposits")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (!depositsError && deposits) {
+        setSavingsDeposits(deposits);
+      }
+
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -112,6 +146,51 @@ const Dashboard = () => {
           />
         </div>
 
+        {/* Savings Balance Card */}
+        <Card className="bg-gradient-to-br from-primary via-primary to-primary/80 text-white border-0 shadow-lg overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <CardContent className="p-6 relative">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <Wallet className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm opacity-80">Your Savings Balance</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-2xl sm:text-3xl font-bold">
+                      {showBalance ? `KES ${savingsBalance.toLocaleString()}` : "KES ****"}
+                    </p>
+                    <button 
+                      onClick={() => setShowBalance(!showBalance)}
+                      className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                    >
+                      {showBalance ? (
+                        <EyeOff className="w-5 h-5 opacity-80" />
+                      ) : (
+                        <Eye className="w-5 h-5 opacity-80" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm opacity-80">
+              {savingsBalance >= 500 ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Eligible for loan disbursement</span>
+                </>
+              ) : (
+                <>
+                  <Clock className="w-4 h-4" />
+                  <span>KES {(500 - savingsBalance).toLocaleString()} more to unlock loans</span>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="cursor-pointer hover:shadow-soft hover:scale-105 transition-all duration-300 border-2 border-primary/20" onClick={() => navigate("/application")}>
@@ -142,6 +221,66 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Savings History */}
+        <Card className="border-2 border-primary/20">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <PiggyBank className="w-5 h-5 text-primary" />
+                Savings History
+              </CardTitle>
+              <Badge variant="outline" className="text-primary border-primary/30">
+                {savingsDeposits.length} transactions
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {savingsDeposits.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Wallet className="w-8 h-8 text-primary" />
+                </div>
+                <p className="text-muted-foreground mb-2">No savings deposits yet</p>
+                <p className="text-sm text-muted-foreground mb-4">Start saving to unlock loan disbursement</p>
+                <Button 
+                  onClick={() => navigate("/application")}
+                  variant="outline"
+                  className="rounded-xl"
+                >
+                  Get Started
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {savingsDeposits.map((deposit) => (
+                  <div 
+                    key={deposit.id} 
+                    className="flex items-center justify-between p-4 border-2 border-muted rounded-2xl hover:border-primary/20 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${deposit.verified ? 'bg-green-100 dark:bg-green-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30'}`}>
+                        <ArrowUpRight className={`w-5 h-5 ${deposit.verified ? 'text-green-600' : 'text-yellow-600'}`} />
+                      </div>
+                      <div>
+                        <p className="font-semibold">KES {deposit.amount.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {deposit.transaction_code || 'Processing'} • {new Date(deposit.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge 
+                      variant={deposit.verified ? "default" : "secondary"}
+                      className={deposit.verified ? "bg-green-600" : ""}
+                    >
+                      {deposit.verified ? "Verified" : "Pending"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Savings Section - HELA MMF */}
         <Card className="border-2 border-accent/30 shadow-card overflow-hidden">
