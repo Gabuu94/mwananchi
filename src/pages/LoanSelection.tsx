@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { useNavigate } from "react-router-dom";
-import { Banknote, Info } from "lucide-react";
+import { Banknote, CreditCard, PiggyBank, FileText, ArrowRight, Info, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import helaPesaLogo from "@/assets/hela-pesa-logo.png";
 
 const LoanSelection = () => {
   const [loanLimit, setLoanLimit] = useState(0);
   const [selectedAmount, setSelectedAmount] = useState(0);
   const [processingFee, setProcessingFee] = useState(0);
+  const [showBalance, setShowBalance] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -24,11 +25,10 @@ const LoanSelection = () => {
     
     const limitAmount = parseInt(limit);
     setLoanLimit(limitAmount);
-    setSelectedAmount(Math.floor(limitAmount / 2)); // Default to half the limit
+    setSelectedAmount(Math.floor(limitAmount / 2));
   }, [navigate]);
 
   useEffect(() => {
-    // Calculate processing fee based on loan amount (between 399 and 1399)
     if (selectedAmount > 0) {
       const minFee = 399;
       const maxFee = 1399;
@@ -64,114 +64,164 @@ const LoanSelection = () => {
     navigate("/payment");
   };
 
+  const quickActions = [
+    { icon: Banknote, label: "Loan", active: true },
+    { icon: PiggyBank, label: "Savings", active: false },
+    { icon: CreditCard, label: "Pay", active: false },
+    { icon: FileText, label: "History", active: false },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-soft py-8 px-4">
-      <div className="container max-w-2xl mx-auto">
-        <Card className="shadow-card">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Banknote className="w-8 h-8 text-primary" />
+    <div className="min-h-screen bg-background">
+      {/* Gradient Header Section */}
+      <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-b-[2.5rem] pb-8 pt-6 px-4">
+        {/* Top Bar */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
+              <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-cover" />
             </div>
-            <CardTitle className="text-2xl">Select Loan Amount</CardTitle>
-            <CardDescription>
-              Choose how much you'd like to borrow
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-8">
-            {/* Loan Limit Display */}
-            <div className="bg-muted/50 p-4 rounded-xl text-center">
-              <p className="text-sm text-muted-foreground mb-1">Your Approved Limit</p>
-              <p className="text-2xl font-bold text-primary">
-                KES {loanLimit.toLocaleString()}
-              </p>
+            <div className="text-white">
+              <p className="text-sm opacity-80">Welcome,</p>
+              <p className="font-bold">User</p>
             </div>
+          </div>
+        </div>
 
-            {/* Amount Selection */}
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="amount">Loan Amount</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  value={selectedAmount}
-                  onChange={handleInputChange}
-                  max={loanLimit}
-                  min={0}
-                  className="text-2xl font-bold h-16 text-center"
-                />
-              </div>
-
-              <div className="space-y-4">
-                <Slider
-                  value={[selectedAmount]}
-                  onValueChange={handleSliderChange}
-                  max={loanLimit}
-                  min={0}
-                  step={100}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>KES 0</span>
-                  <span>KES {loanLimit.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Processing Fee */}
-            <div className="bg-accent/20 p-6 rounded-xl space-y-4 border-2 border-accent/30">
-              <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-accent-foreground mt-0.5 flex-shrink-0" />
-                <div className="space-y-2 flex-1">
-                  <h3 className="font-semibold text-accent-foreground">Processing Fee</h3>
-                  <p className="text-sm text-muted-foreground">
-                    A one-time processing fee is required to activate your loan. This fee covers verification and disbursement costs.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="bg-card p-4 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Processing Fee:</span>
-                  <span className="text-xl font-bold text-primary">
-                    KES {processingFee.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Summary */}
-            <div className="bg-gradient-primary p-6 rounded-xl text-white space-y-3">
-              <h3 className="font-semibold text-lg">Loan Summary</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-white/80">Loan Amount:</span>
-                  <span className="font-bold">KES {selectedAmount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-white/80">Processing Fee:</span>
-                  <span className="font-bold">KES {processingFee.toLocaleString()}</span>
-                </div>
-                <div className="border-t border-white/20 pt-2 mt-2">
-                  <div className="flex justify-between text-lg">
-                    <span className="font-semibold">Total to Receive:</span>
-                    <span className="font-bold">KES {(selectedAmount).toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Button 
-              variant="cute" 
-              size="lg"
-              className="w-full"
-              onClick={handleProceed}
-              disabled={selectedAmount < 1000}
+        {/* Balance Display */}
+        <div className="text-center text-white mb-6">
+          <p className="text-sm opacity-80 mb-2">Your Loan Limit (KES)</p>
+          <div className="flex items-center justify-center gap-3">
+            <p className="text-3xl font-bold tracking-wide">
+              {showBalance ? `KES ${loanLimit.toLocaleString()}` : "****"}
+            </p>
+            <button 
+              onClick={() => setShowBalance(!showBalance)}
+              className="p-1 hover:bg-white/10 rounded-full transition-colors"
             >
-              Proceed to Payment
-            </Button>
+              {showBalance ? (
+                <EyeOff className="w-5 h-5 text-white/80" />
+              ) : (
+                <Eye className="w-5 h-5 text-white/80" />
+              )}
+            </button>
+          </div>
+          <p className="text-sm opacity-70 mt-1">Processing Fee: KES {processingFee.toLocaleString()}</p>
+        </div>
+
+        {/* Quick Action Buttons */}
+        <div className="flex justify-center gap-6">
+          {quickActions.map((action, index) => (
+            <div key={index} className="flex flex-col items-center gap-2">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
+                action.active 
+                  ? "bg-white shadow-lg" 
+                  : "bg-white/20 hover:bg-white/30"
+              }`}>
+                <action.icon className={`w-6 h-6 ${action.active ? "text-primary" : "text-white"}`} />
+              </div>
+              <span className={`text-xs font-medium ${action.active ? "text-white" : "text-white/70"}`}>
+                {action.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="px-4 -mt-4">
+        {/* Loan Amount Selection Card */}
+        <Card className="shadow-card border-0 mb-4">
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg mb-4">Select Loan Amount</h3>
+            
+            {/* Amount Input */}
+            <div className="bg-muted/50 rounded-2xl p-4 mb-6">
+              <p className="text-xs text-muted-foreground mb-2 text-center">Enter Amount (KES)</p>
+              <Input
+                type="number"
+                value={selectedAmount}
+                onChange={handleInputChange}
+                max={loanLimit}
+                min={0}
+                className="text-3xl font-bold h-16 text-center border-0 bg-transparent focus-visible:ring-0"
+              />
+            </div>
+
+            {/* Slider */}
+            <div className="space-y-3 mb-6">
+              <Slider
+                value={[selectedAmount]}
+                onValueChange={handleSliderChange}
+                max={loanLimit}
+                min={0}
+                step={100}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>KES 0</span>
+                <span>KES {loanLimit.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Quick Amount Buttons */}
+            <div className="grid grid-cols-4 gap-2 mb-6">
+              {[0.25, 0.5, 0.75, 1].map((percent) => (
+                <Button
+                  key={percent}
+                  variant={selectedAmount === Math.floor(loanLimit * percent) ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => setSelectedAmount(Math.floor(loanLimit * percent))}
+                >
+                  {percent === 1 ? "Max" : `${percent * 100}%`}
+                </Button>
+              ))}
+            </div>
           </CardContent>
         </Card>
+
+        {/* Loan Summary Card */}
+        <Card className="shadow-card border-0 mb-4">
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg mb-4">Loan Summary</h3>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-2 border-b border-border/50">
+                <span className="text-muted-foreground">Loan Amount</span>
+                <span className="font-semibold">KES {selectedAmount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-border/50">
+                <span className="text-muted-foreground">Processing Fee</span>
+                <span className="font-semibold">KES {processingFee.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="font-semibold">You'll Receive</span>
+                <span className="font-bold text-xl text-primary">KES {selectedAmount.toLocaleString()}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Info Note */}
+        <div className="flex items-start gap-3 p-4 bg-accent/20 rounded-xl mb-6">
+          <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-muted-foreground">
+            A one-time processing fee is required to activate your loan. This covers verification and disbursement costs.
+          </p>
+        </div>
+
+        {/* Proceed Button */}
+        <Button 
+          variant="cute" 
+          size="lg"
+          className="w-full mb-8"
+          onClick={handleProceed}
+          disabled={selectedAmount < 1000}
+        >
+          <span>Proceed to Payment</span>
+          <ArrowRight className="w-5 h-5 ml-2" />
+        </Button>
       </div>
     </div>
   );
