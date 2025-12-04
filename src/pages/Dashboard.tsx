@@ -175,18 +175,29 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm opacity-80">
-              {savingsBalance >= 500 ? (
-                <>
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Eligible for loan disbursement</span>
-                </>
-              ) : (
-                <>
-                  <Clock className="w-4 h-4" />
-                  <span>KES {(500 - savingsBalance).toLocaleString()} more to unlock loans</span>
-                </>
-              )}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm opacity-80">
+                {savingsBalance >= 500 ? (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Eligible for loan disbursement</span>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="w-4 h-4" />
+                    <span>KES {(500 - savingsBalance).toLocaleString()} more to unlock loans</span>
+                  </>
+                )}
+              </div>
+              <Button 
+                variant="secondary" 
+                size="sm"
+                onClick={() => navigate("/payment")}
+                className="bg-white/20 hover:bg-white/30 text-white border-0"
+              >
+                <ArrowUpRight className="w-4 h-4 mr-1" />
+                Save Now
+              </Button>
             </div>
           </CardContent>
         </Card>
