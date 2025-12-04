@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Wallet, AlertCircle, Copy, CheckCircle, Loader2 } from "lucide-react";
+import { Wallet, AlertCircle, Copy, CheckCircle, Loader2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,7 @@ const TILL_NUMBER = "8827395";
 const MIN_SAVINGS_BALANCE = 500;
 
 const Payment = () => {
-  const [loanAmount, setLoanAmount] = useState(0);
+  const [loanAmount, setLoanAmount] = useState<number | null>(null);
   const [savingsBalance, setSavingsBalance] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mpesaMessage, setMpesaMessage] = useState("");
@@ -20,17 +20,16 @@ const Payment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Check if this is a loan disbursement flow or just savings deposit
+  const isLoanFlow = loanAmount !== null && loanAmount > 0;
+
   useEffect(() => {
     const amount = localStorage.getItem("selectedLoanAmount");
-    
-    if (!amount) {
-      navigate("/loan-selection");
-      return;
+    if (amount) {
+      setLoanAmount(parseInt(amount));
     }
-    
-    setLoanAmount(parseInt(amount));
     fetchSavingsBalance();
-  }, [navigate]);
+  }, []);
 
   const fetchSavingsBalance = async () => {
     try {
@@ -320,9 +319,14 @@ const Payment = () => {
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Wallet className="w-8 h-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Fund Your Savings</CardTitle>
+            <CardTitle className="text-2xl">
+              {isLoanFlow ? "Fund Your Savings" : "Add Savings"}
+            </CardTitle>
             <CardDescription>
-              Deposit to your savings to unlock loan disbursement
+              {isLoanFlow 
+                ? "Deposit to your savings to unlock loan disbursement"
+                : "Build your savings to qualify for higher loan limits"
+              }
             </CardDescription>
           </CardHeader>
           
@@ -331,30 +335,35 @@ const Payment = () => {
             <div className="bg-gradient-to-br from-primary to-primary/80 p-6 rounded-xl text-white">
               <p className="text-sm opacity-80 mb-1">Your Savings Balance</p>
               <p className="text-3xl font-bold">KES {(savingsBalance || 0).toLocaleString()}</p>
-              <div className="mt-3 flex items-center gap-2">
-                {hasSufficientSavings ? (
-                  <>
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm">Eligible for loan disbursement</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm">Minimum KES {MIN_SAVINGS_BALANCE} required</span>
-                  </>
-                )}
-              </div>
+              {isLoanFlow && (
+                <div className="mt-3 flex items-center gap-2">
+                  {hasSufficientSavings ? (
+                    <>
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="text-sm">Eligible for loan disbursement</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-sm">Minimum KES {MIN_SAVINGS_BALANCE} required</span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Loan Details */}
-            <div className="bg-muted/50 p-4 rounded-xl">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Loan Amount:</span>
-                <span className="font-bold">KES {loanAmount.toLocaleString()}</span>
+            {/* Loan Details - only show if in loan flow */}
+            {isLoanFlow && (
+              <div className="bg-muted/50 p-4 rounded-xl">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Loan Amount:</span>
+                  <span className="font-bold">KES {loanAmount?.toLocaleString()}</span>
+                </div>
               </div>
-            </div>
+            )}
 
-            {!hasSufficientSavings && (
+            {/* Show deposit instructions if not enough savings OR not in loan flow */}
+            {(!hasSufficientSavings || !isLoanFlow) && (
               <>
                 {/* Deposit Instructions */}
                 <div className="bg-primary/5 p-6 rounded-xl border-2 border-primary/20">
@@ -389,7 +398,12 @@ const Payment = () => {
                     </li>
                     <li className="flex gap-3">
                       <span className="font-bold text-primary min-w-6">4.</span>
-                      <span>Enter amount (minimum KES {MIN_SAVINGS_BALANCE - (savingsBalance || 0)} more needed)</span>
+                      <span>
+                        {isLoanFlow && !hasSufficientSavings
+                          ? `Enter amount (minimum KES ${MIN_SAVINGS_BALANCE - (savingsBalance || 0)} more needed)`
+                          : "Enter the amount you want to save"
+                        }
+                      </span>
                     </li>
                     <li className="flex gap-3">
                       <span className="font-bold text-primary min-w-6">5.</span>
@@ -438,7 +452,8 @@ const Payment = () => {
               </>
             )}
 
-            {hasSufficientSavings && (
+            {/* Show proceed button only in loan flow with sufficient savings */}
+            {isLoanFlow && hasSufficientSavings && (
               <div className="space-y-4">
                 <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border-2 border-green-200 dark:border-green-800 flex gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -456,7 +471,7 @@ const Payment = () => {
                   className="w-full"
                   onClick={handleProceedWithLoan}
                 >
-                  Proceed with Loan (KES {loanAmount.toLocaleString()})
+                  Proceed with Loan (KES {loanAmount?.toLocaleString()})
                 </Button>
               </div>
             )}
@@ -464,9 +479,10 @@ const Payment = () => {
             <Button 
               variant="outline"
               className="w-full"
-              onClick={() => navigate("/loan-selection")}
+              onClick={() => navigate(isLoanFlow ? "/loan-selection" : "/dashboard")}
             >
-              Go Back
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {isLoanFlow ? "Back to Loan Selection" : "Back to Dashboard"}
             </Button>
           </CardContent>
         </Card>
