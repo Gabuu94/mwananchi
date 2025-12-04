@@ -13,11 +13,11 @@ const Footer = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <a 
-              href="mailto:support@helaloans.com"
+              href="mailto:support@helaloans.co.ke"
               className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
             >
               <Mail className="w-4 h-4" />
-              support@helaloans.com
+              support@helaloans.co.ke
             </a>
             
             <a 
