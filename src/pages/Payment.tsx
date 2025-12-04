@@ -175,14 +175,17 @@ const Payment = () => {
         .maybeSingle();
 
       if (existingSavings) {
-        // Update existing balance - we need to use a different approach since RLS doesn't allow update
+        // Update existing balance
         const newBalance = existingSavings.balance + amount;
         
-        // For now, we'll show success and the admin will update the balance
-        toast({
-          title: "Deposit Submitted! 🎉",
-          description: `Your deposit of KES ${amount.toLocaleString()} is being verified. Your savings will be updated shortly.`,
-        });
+        const { error: updateError } = await supabase
+          .from("user_savings")
+          .update({ balance: newBalance })
+          .eq("user_id", user.id);
+
+        if (updateError) {
+          console.error("Update savings error:", updateError);
+        }
       } else {
         // Create new savings record
         const { error: savingsError } = await supabase
