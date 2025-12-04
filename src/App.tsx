@@ -26,6 +26,16 @@ import Footer from "./components/Footer";
 
 const queryClient = new QueryClient();
 
+const ScrollToTop = () => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+  
+  return null;
+};
+
 const LoanNotifications = () => {
   const location = useLocation();
   
@@ -98,6 +108,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <LoanNotifications />
             <div className="min-h-screen flex flex-col">
               <Routes>
