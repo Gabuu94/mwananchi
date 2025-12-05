@@ -324,15 +324,19 @@ export const ChatBot = () => {
             <div className="border-t p-4">
               {showSupportForm ? (
                 <div className="space-y-3">
+                  <div className="bg-muted/50 p-3 rounded-lg text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground mb-1">Contacting Support</p>
+                    <p>Please describe your issue in detail. Include any relevant information like transaction codes, dates, or error messages. A support agent will reply shortly.</p>
+                  </div>
                   <Textarea
                     value={supportMessage}
                     onChange={(e) => setSupportMessage(e.target.value)}
-                    placeholder="Describe your issue..."
+                    placeholder="Describe your issue in detail..."
                     className="min-h-[80px]"
                   />
                   <div className="flex gap-2">
                     <Button onClick={handleSupportRequest} className="flex-1">
-                      Send Request
+                      Send to Support
                     </Button>
                     <Button variant="outline" onClick={() => setShowSupportForm(false)}>
                       Cancel

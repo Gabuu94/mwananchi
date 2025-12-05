@@ -23,6 +23,7 @@ import Support from "./pages/Support";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
+import { ChatBot } from "./components/ChatBot";
 
 const queryClient = new QueryClient();
 
@@ -130,6 +131,7 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <Footer />
+              <ChatBot />
             </div>
           </BrowserRouter>
         </TooltipProvider>
