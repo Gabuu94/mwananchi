@@ -3,21 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useNavigate, Link } from "react-router-dom";
 import { LogIn, UserPlus, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import helaLogo from "@/assets/hela-logo.png";
 import DecorativeBackground from "@/components/DecorativeBackground";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     idNumber: "",
@@ -45,6 +42,16 @@ const Auth = () => {
       toast({
         title: "Incomplete Form",
         description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isLogin && !acceptedTerms) {
+      toast({
+        title: "Terms Required",
+        description: "Please accept the terms and conditions to continue",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -260,7 +267,26 @@ const Auth = () => {
                 />
               </div>
 
-              <Button 
+              {!isLogin && (
+                <div className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg">
+                  <Checkbox 
+                    id="terms" 
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                  />
+                  <label
+                    htmlFor="terms"
+                    className="text-sm leading-tight cursor-pointer"
+                  >
+                    I agree to the{" "}
+                    <Link to="/terms" className="text-primary hover:underline font-medium">
+                      Terms & Conditions
+                    </Link>
+                  </label>
+                </div>
+              )}
+
+              <Button
                 type="submit" 
                 variant="cute" 
                 className="w-full" 

@@ -1,4 +1,5 @@
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -12,6 +13,14 @@ const Footer = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <Link 
+              to="/terms"
+              className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              Terms & Conditions
+            </Link>
+            
             <a 
               href="mailto:support@helaloans.co.ke"
               className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
