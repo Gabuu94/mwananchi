@@ -24,6 +24,7 @@ import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 import { ChatBot } from "./components/ChatBot";
+import InstallPrompt from "./components/InstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -132,6 +133,7 @@ const App = () => {
               </Routes>
               <Footer />
               <ChatBot />
+              <InstallPrompt />
             </div>
           </BrowserRouter>
         </TooltipProvider>
