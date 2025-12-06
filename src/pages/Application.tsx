@@ -115,40 +115,47 @@ const Application = () => {
       }
 
       // Calculate loan limit based on income and employment status
+      // Minimum: 6,200 KES, Maximum: 30,000 KES
+      const MIN_LOAN_LIMIT = 6200;
+      const MAX_LOAN_LIMIT = 30000;
+      
       let baseLoan = 0;
       
       // Base loan calculation by income level
       switch(formData.incomeLevel) {
         case "below-20k":
-          baseLoan = 3450;
+          baseLoan = 8000;
           break;
         case "20k-50k":
-          baseLoan = 7000;
+          baseLoan = 15000;
           break;
         case "50k-100k":
-          baseLoan = 11000;
+          baseLoan = 22000;
           break;
         case "above-100k":
-          baseLoan = 14600;
+          baseLoan = 28000;
           break;
       }
       
       // Adjust by employment status
-      let loanLimit = baseLoan;
+      let calculatedLimit = baseLoan;
       switch(formData.employmentStatus) {
         case "employed":
-          loanLimit = Math.floor(baseLoan * 1.2); // 20% boost
+          calculatedLimit = Math.floor(baseLoan * 1.15); // 15% boost
           break;
         case "self-employed":
-          loanLimit = Math.floor(baseLoan * 1.1); // 10% boost
+          calculatedLimit = Math.floor(baseLoan * 1.05); // 5% boost
           break;
         case "student":
-          loanLimit = Math.floor(baseLoan * 0.7); // 30% reduction
+          calculatedLimit = Math.floor(baseLoan * 0.85); // 15% reduction
           break;
         case "unemployed":
-          loanLimit = Math.floor(baseLoan * 0.5); // 50% reduction
+          calculatedLimit = Math.floor(baseLoan * 0.75); // 25% reduction
           break;
       }
+      
+      // Clamp to min/max range
+      const loanLimit = Math.min(MAX_LOAN_LIMIT, Math.max(MIN_LOAN_LIMIT, calculatedLimit));
 
       // Simulate processing time before saving to database
       setTimeout(async () => {
