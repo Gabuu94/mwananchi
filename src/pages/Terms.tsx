@@ -37,9 +37,9 @@ const Terms = () => {
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-semibold">3. Processing & Disbursement</h4>
+              <h4 className="font-semibold">3. Savings & Disbursement</h4>
               <p className="text-sm text-muted-foreground">
-                A processing fee is required before loan disbursement. This fee is non-refundable. We reserve the right to approve or decline loan applications at our discretion. Approved loans are disbursed to your M-Pesa account.
+                A minimum savings balance of KES 500 is required before loan disbursement. We reserve the right to approve or decline loan applications at our discretion. Approved loans are disbursed to your M-Pesa account.
               </p>
             </div>
 

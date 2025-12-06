@@ -52,8 +52,8 @@ LOAN REPAYMENT:
 - Can make partial or full repayments
 - Timely repayment improves loan limit for future loans
 
-FEES & INTEREST:
-- Processing fees apply to each loan
+SAVINGS REQUIREMENT:
+- Minimum savings of KES 500 required before loan disbursement
 - Interest rates are competitive and disclosed before accepting the loan
 - No hidden charges
 
