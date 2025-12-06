@@ -53,6 +53,58 @@ const Dashboard = () => {
   useEffect(() => {
     checkUser();
     fetchData();
+
+    // Set up real-time subscriptions for automatic updates
+    const channels: any[] = [];
+
+    // Subscribe to user_savings changes
+    const savingsChannel = supabase
+      .channel('dashboard-savings')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_savings' }, () => {
+        fetchData();
+      })
+      .subscribe();
+    channels.push(savingsChannel);
+
+    // Subscribe to savings_deposits changes
+    const depositsChannel = supabase
+      .channel('dashboard-deposits')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'savings_deposits' }, () => {
+        fetchData();
+      })
+      .subscribe();
+    channels.push(depositsChannel);
+
+    // Subscribe to withdrawals changes
+    const withdrawalsChannel = supabase
+      .channel('dashboard-withdrawals')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawals' }, () => {
+        fetchData();
+      })
+      .subscribe();
+    channels.push(withdrawalsChannel);
+
+    // Subscribe to loan_applications changes
+    const appsChannel = supabase
+      .channel('dashboard-applications')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'loan_applications' }, () => {
+        fetchData();
+      })
+      .subscribe();
+    channels.push(appsChannel);
+
+    // Subscribe to loan_disbursements changes
+    const disbChannel = supabase
+      .channel('dashboard-disbursements')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'loan_disbursements' }, () => {
+        fetchData();
+      })
+      .subscribe();
+    channels.push(disbChannel);
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
   }, []);
 
   useEffect(() => {

@@ -50,6 +50,61 @@ const Admin = () => {
 
   useEffect(() => {
     checkAdminAccess();
+
+    // Set up real-time subscriptions for automatic updates
+    const channels: any[] = [];
+
+    const appsChannel = supabase
+      .channel('admin-applications')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'loan_applications' }, () => {
+        fetchAllData();
+      })
+      .subscribe();
+    channels.push(appsChannel);
+
+    const supportChannel = supabase
+      .channel('admin-support')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_requests' }, () => {
+        fetchAllData();
+      })
+      .subscribe();
+    channels.push(supportChannel);
+
+    const withdrawalsChannel = supabase
+      .channel('admin-withdrawals')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawals' }, () => {
+        fetchAllData();
+      })
+      .subscribe();
+    channels.push(withdrawalsChannel);
+
+    const depositsChannel = supabase
+      .channel('admin-deposits')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'savings_deposits' }, () => {
+        fetchAllData();
+      })
+      .subscribe();
+    channels.push(depositsChannel);
+
+    const disbChannel = supabase
+      .channel('admin-disbursements')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'loan_disbursements' }, () => {
+        fetchAllData();
+      })
+      .subscribe();
+    channels.push(disbChannel);
+
+    const savingsChannel = supabase
+      .channel('admin-savings')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_savings' }, () => {
+        fetchAllData();
+      })
+      .subscribe();
+    channels.push(savingsChannel);
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
   }, []);
 
   const checkAdminAccess = async () => {
