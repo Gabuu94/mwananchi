@@ -3,10 +3,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { supabase } from "@/integrations/supabase/client";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -34,6 +35,31 @@ const ScrollToTop = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+  
+  return null;
+};
+
+// Sign out user on app load and redirect to landing page
+const SessionClearer = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    const clearSession = async () => {
+      // Only clear session on initial app load, not on every route change
+      const hasCleared = sessionStorage.getItem('session_cleared');
+      if (!hasCleared) {
+        await supabase.auth.signOut();
+        sessionStorage.setItem('session_cleared', 'true');
+        // If user is on a protected page, redirect to landing
+        const publicPages = ['/', '/auth', '/reset-password', '/terms'];
+        if (!publicPages.includes(location.pathname)) {
+          navigate('/', { replace: true });
+        }
+      }
+    };
+    clearSession();
+  }, []);
   
   return null;
 };
@@ -111,6 +137,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <ScrollToTop />
+            <SessionClearer />
             <LoanNotifications />
             <div className="min-h-screen flex flex-col">
               <Routes>
