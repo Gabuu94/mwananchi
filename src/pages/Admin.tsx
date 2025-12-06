@@ -477,7 +477,7 @@ const Admin = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
                         <p className="font-semibold">{d.loan_applications?.full_name || "Unknown"}</p>
-                        <p className="text-sm">Loan: KES {d.loan_amount.toLocaleString()} | Fee: KES {d.processing_fee.toLocaleString()}</p>
+                        <p className="text-sm">Loan: KES {d.loan_amount.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">Phone: {d.loan_applications?.whatsapp_number}</p>
                         <p className="text-xs text-muted-foreground">Code: {d.transaction_code}</p>
                         <p className="text-xs text-muted-foreground">{new Date(d.created_at).toLocaleString()}</p>
