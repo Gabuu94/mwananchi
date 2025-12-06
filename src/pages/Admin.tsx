@@ -12,6 +12,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { UserMenu } from "@/components/UserMenu";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import helaLogo from "@/assets/hela-logo.png";
 
 const Admin = () => {
@@ -27,6 +37,7 @@ const Admin = () => {
   const [replies, setReplies] = useState<Record<string, string>>({});
   const [activeTyping, setActiveTyping] = useState<string | null>(null);
   const [expandedApp, setExpandedApp] = useState<string | null>(null);
+  const [withdrawalConfirm, setWithdrawalConfirm] = useState<{ id: string; action: 'approve' | 'reject'; amount: number; phone: string } | null>(null);
   const [stats, setStats] = useState({
     totalApplications: 0,
     pendingApplications: 0,
@@ -149,14 +160,23 @@ const Admin = () => {
     }
   };
 
-  const updateWithdrawalStatus = async (id: string, status: string) => {
+  const handleWithdrawalAction = (w: any, action: 'approve' | 'reject') => {
+    setWithdrawalConfirm({ id: w.id, action, amount: w.amount, phone: w.phone_number });
+  };
+
+  const confirmWithdrawalAction = async () => {
+    if (!withdrawalConfirm) return;
+    
+    const status = withdrawalConfirm.action === 'approve' ? 'completed' : 'rejected';
     try {
-      const { error } = await supabase.from("withdrawals").update({ status }).eq("id", id);
+      const { error } = await supabase.from("withdrawals").update({ status }).eq("id", withdrawalConfirm.id);
       if (error) throw error;
       toast.success(`Withdrawal ${status}!`);
       fetchAllData();
     } catch (error: any) {
       toast.error(error.message);
+    } finally {
+      setWithdrawalConfirm(null);
     }
   };
 
@@ -347,8 +367,8 @@ const Admin = () => {
                         {getStatusBadge(w.status === "completed" ? "approved" : w.status)}
                         {w.status === "pending" && (
                           <div className="flex gap-2">
-                            <Button size="sm" onClick={() => updateWithdrawalStatus(w.id, "completed")}><CheckCircle className="w-4 h-4 mr-1" />Approve</Button>
-                            <Button size="sm" variant="destructive" onClick={() => updateWithdrawalStatus(w.id, "rejected")}><XCircle className="w-4 h-4" /></Button>
+                            <Button size="sm" onClick={() => handleWithdrawalAction(w, 'approve')}><CheckCircle className="w-4 h-4 mr-1" />Approve</Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleWithdrawalAction(w, 'reject')}><XCircle className="w-4 h-4" /></Button>
                           </div>
                         )}
                       </div>
@@ -422,6 +442,39 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Withdrawal Confirmation Dialog */}
+      <AlertDialog open={!!withdrawalConfirm} onOpenChange={() => setWithdrawalConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {withdrawalConfirm?.action === 'approve' ? 'Approve Withdrawal' : 'Reject Withdrawal'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {withdrawalConfirm?.action === 'approve' ? (
+                <>
+                  Are you sure you want to approve this withdrawal of <strong>KES {withdrawalConfirm?.amount.toLocaleString()}</strong> to <strong>{withdrawalConfirm?.phone}</strong>?
+                  <br /><br />
+                  This will deduct the amount from the user's savings balance.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to reject this withdrawal request of <strong>KES {withdrawalConfirm?.amount.toLocaleString()}</strong>?
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmWithdrawalAction}
+              className={withdrawalConfirm?.action === 'reject' ? 'bg-destructive hover:bg-destructive/90' : ''}
+            >
+              {withdrawalConfirm?.action === 'approve' ? 'Approve' : 'Reject'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
