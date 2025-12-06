@@ -4,6 +4,7 @@ import { Shield, Zap } from "lucide-react";
 import helaPesaLogo from "@/assets/hela-pesa-logo.png";
 import helaLogo from "@/assets/hela-logo.png";
 import DecorativeBackground from "@/components/DecorativeBackground";
+import AppDownloadSection from "@/components/AppDownloadSection";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -75,6 +76,9 @@ const Landing = () => {
                 No complicated paperwork, just a few simple steps
               </p>
             </div>
+
+            {/* App Download Section */}
+            <AppDownloadSection />
           </div>
         </div>
       </main>
