@@ -1,27 +1,10 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router-dom";
-import { FileCheck } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { FileCheck, ArrowLeft } from "lucide-react";
 
 const Terms = () => {
-  const [accepted, setAccepted] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleContinue = () => {
-    if (!accepted) {
-      toast({
-        title: "Please Accept Terms",
-        description: "You must accept the terms and conditions to continue",
-        variant: "destructive",
-      });
-      return;
-    }
-    navigate("/application");
-  };
 
   return (
     <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-4">
@@ -32,11 +15,11 @@ const Terms = () => {
           </div>
           <CardTitle className="text-2xl">Terms & Conditions</CardTitle>
           <CardDescription>
-            Please read and accept our terms to continue
+            Hela Loans Service Agreement
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="bg-muted p-6 rounded-xl max-h-96 overflow-y-auto space-y-4">
+          <div className="bg-muted p-6 rounded-xl max-h-[60vh] overflow-y-auto space-y-4">
             <h3 className="font-bold text-lg">Hela Loans Terms & Conditions</h3>
             
             <div className="space-y-2">
@@ -90,41 +73,19 @@ const Terms = () => {
 
             <div className="mt-4 p-3 bg-primary/10 rounded-lg">
               <p className="text-xs text-muted-foreground">
-                <strong>Contact Us:</strong> For support, email support@helaloans.com or call +254 755 440 358
+                <strong>Contact Us:</strong> For support, email support@helaloans.co.ke or call +254 755 440 358
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3 p-4 bg-card rounded-xl border-2 border-border">
-            <Checkbox 
-              id="terms" 
-              checked={accepted}
-              onCheckedChange={(checked) => setAccepted(checked as boolean)}
-            />
-            <label
-              htmlFor="terms"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-            >
-              I have read and accept the terms and conditions
-            </label>
-          </div>
-
-          <div className="flex gap-4">
-            <Button 
-              variant="outline" 
-              className="flex-1"
-              onClick={() => navigate("/auth")}
-            >
-              Go Back
-            </Button>
-            <Button 
-              variant="cute" 
-              className="flex-1"
-              onClick={handleContinue}
-            >
-              Continue
-            </Button>
-          </div>
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Go Back
+          </Button>
         </CardContent>
       </Card>
     </div>
