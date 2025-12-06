@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Wallet, AlertCircle, Copy, CheckCircle, Loader2, ArrowLeft } from "lucide-react";
+import { Wallet, AlertCircle, Copy, CheckCircle, Loader2, ArrowLeft, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
@@ -482,6 +482,18 @@ const Payment = () => {
                   Proceed with Loan (KES {loanAmount?.toLocaleString()})
                 </Button>
               </div>
+            )}
+
+            {/* Apply for Loan button - only show when not in loan flow */}
+            {!isLoanFlow && (
+              <Button 
+                variant="cute"
+                className="w-full"
+                onClick={() => navigate("/application")}
+              >
+                <DollarSign className="w-4 h-4 mr-2" />
+                Apply for Loan
+              </Button>
             )}
 
             <Button 

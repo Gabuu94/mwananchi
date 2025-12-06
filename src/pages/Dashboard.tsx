@@ -287,7 +287,13 @@ const Dashboard = () => {
                 <Button 
                   variant="secondary" 
                   size="sm"
-                  onClick={() => navigate("/payment")}
+                  onClick={() => {
+                    // Clear loan-related localStorage for pure savings flow
+                    localStorage.removeItem("selectedLoanAmount");
+                    localStorage.removeItem("currentApplicationId");
+                    localStorage.removeItem("helaLoanLimit");
+                    navigate("/payment");
+                  }}
                   className="bg-white/20 hover:bg-white/30 text-white border-0"
                 >
                   <ArrowUpRight className="w-4 h-4 mr-1" />
@@ -360,7 +366,13 @@ const Dashboard = () => {
                 <p className="text-muted-foreground mb-2">No savings deposits yet</p>
                 <p className="text-sm text-muted-foreground mb-4">Start saving to unlock loan disbursement</p>
                 <Button 
-                  onClick={() => navigate("/payment")}
+                  onClick={() => {
+                    // Clear loan-related localStorage for pure savings flow
+                    localStorage.removeItem("selectedLoanAmount");
+                    localStorage.removeItem("currentApplicationId");
+                    localStorage.removeItem("helaLoanLimit");
+                    navigate("/payment");
+                  }}
                   variant="outline"
                   className="rounded-xl"
                 >
