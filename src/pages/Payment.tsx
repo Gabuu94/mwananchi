@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Wallet, CheckCircle, Loader2, ArrowLeft, DollarSign, Sparkles, Phone } from "lucide-react";
+import { Wallet, CheckCircle, Loader2, ArrowLeft, DollarSign, Sparkles, Phone, XCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 
 const MIN_SAVINGS_BALANCE = 500;
+
+type PaymentStatus = 'idle' | 'processing' | 'waiting' | 'success' | 'failed';
 
 const Payment = () => {
   const [loanAmount, setLoanAmount] = useState<number | null>(null);
@@ -15,7 +17,8 @@ const Payment = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle');
+  const [pendingReference, setPendingReference] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -30,6 +33,67 @@ const Payment = () => {
     fetchSavingsBalance();
     fetchPhoneNumber();
   }, []);
+
+  // Real-time listener for deposit verification
+  useEffect(() => {
+    if (!pendingReference) return;
+
+    console.log('Setting up real-time listener for reference:', pendingReference);
+
+    const channel = supabase
+      .channel('savings-deposits-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'savings_deposits',
+          filter: `transaction_code=eq.${pendingReference}`,
+        },
+        async (payload) => {
+          console.log('Deposit update received:', payload);
+          const newRecord = payload.new as { verified: boolean; amount: number };
+          
+          if (newRecord.verified === true) {
+            setPaymentStatus('success');
+            await fetchSavingsBalance();
+            toast({
+              title: "Payment Confirmed!",
+              description: `KES ${newRecord.amount.toLocaleString()} has been added to your savings.`,
+            });
+            setPendingReference(null);
+            setDepositAmount("");
+          } else if (newRecord.verified === false) {
+            setPaymentStatus('failed');
+            toast({
+              title: "Payment Failed",
+              description: "The payment was not completed. Please try again.",
+              variant: "destructive",
+            });
+            setPendingReference(null);
+          }
+        }
+      )
+      .subscribe();
+
+    // Timeout after 2 minutes
+    const timeout = setTimeout(() => {
+      if (paymentStatus === 'waiting') {
+        setPaymentStatus('failed');
+        toast({
+          title: "Payment Timeout",
+          description: "We didn't receive confirmation. If you completed the payment, please contact support.",
+          variant: "destructive",
+        });
+        setPendingReference(null);
+      }
+    }, 120000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearTimeout(timeout);
+    };
+  }, [pendingReference, paymentStatus, toast]);
 
   const fetchPhoneNumber = async () => {
     try {
@@ -52,7 +116,7 @@ const Payment = () => {
     }
   };
 
-  const fetchSavingsBalance = async () => {
+  const fetchSavingsBalance = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -79,7 +143,7 @@ const Payment = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [navigate]);
 
   const handlePayNow = async () => {
     const amount = parseInt(depositAmount);
@@ -102,7 +166,7 @@ const Payment = () => {
       return;
     }
 
-    setIsProcessing(true);
+    setPaymentStatus('processing');
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -132,62 +196,33 @@ const Payment = () => {
         throw new Error(data?.error || "Failed to initiate payment");
       }
 
+      // Create a pending deposit record
+      await supabase
+        .from("savings_deposits")
+        .insert({
+          user_id: user.id,
+          amount: amount,
+          mpesa_message: `STK Push: ${data.reference}`,
+          transaction_code: data.reference,
+          verified: false, // Will be set to true by webhook
+        });
+
+      setPendingReference(data.reference);
+      setPaymentStatus('waiting');
+
       toast({
         title: "Check Your Phone",
         description: data.displayText || "Enter your M-Pesa PIN when prompted to complete the payment",
       });
 
-      // Poll for payment confirmation or wait for webhook
-      // For now, we'll show a success state and let the user know to wait
-      setTimeout(async () => {
-        // Update savings balance optimistically (will be confirmed via webhook)
-        const { data: existingSavings } = await supabase
-          .from("user_savings")
-          .select("id, balance")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (existingSavings) {
-          await supabase
-            .from("user_savings")
-            .update({ balance: existingSavings.balance + amount })
-            .eq("user_id", user.id);
-        } else {
-          await supabase
-            .from("user_savings")
-            .insert({ user_id: user.id, balance: amount });
-        }
-
-        // Create deposit record
-        await supabase
-          .from("savings_deposits")
-          .insert({
-            user_id: user.id,
-            amount: amount,
-            mpesa_message: `STK Push: ${data.reference}`,
-            transaction_code: data.reference,
-            verified: true,
-          });
-
-        await fetchSavingsBalance();
-        setDepositAmount("");
-        
-        toast({
-          title: "Payment Successful",
-          description: `KES ${amount.toLocaleString()} has been added to your savings.`,
-        });
-        
-        setIsProcessing(false);
-      }, 5000); // Wait 5 seconds for user to enter PIN
-
     } catch (error) {
       console.error("Payment error:", error);
+      setPaymentStatus('failed');
       toast({
         title: "Payment Failed",
         description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
-      setIsProcessing(false);
     }
   };
 
@@ -272,6 +307,11 @@ const Payment = () => {
     }
   };
 
+  const resetPayment = () => {
+    setPaymentStatus('idle');
+    setPendingReference(null);
+  };
+
   const hasSufficientSavings = savingsBalance !== null && savingsBalance >= MIN_SAVINGS_BALANCE;
 
   if (isLoading) {
@@ -333,8 +373,61 @@ const Payment = () => {
               </div>
             )}
 
-            {/* Show deposit form if not enough savings OR not in loan flow */}
-            {(!hasSufficientSavings || !isLoanFlow) && (
+            {/* Payment Status Display */}
+            {paymentStatus === 'waiting' && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 p-6 rounded-xl border-2 border-amber-200 dark:border-amber-800 text-center space-y-4">
+                <div className="w-16 h-16 bg-amber-100 dark:bg-amber-800/40 rounded-full flex items-center justify-center mx-auto">
+                  <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400 animate-pulse" />
+                </div>
+                <div>
+                  <p className="font-semibold text-amber-700 dark:text-amber-400">Waiting for Payment</p>
+                  <p className="text-sm text-amber-600 dark:text-amber-500 mt-1">
+                    Please enter your M-Pesa PIN on your phone to complete the payment.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-2 text-xs text-amber-600 dark:text-amber-500">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>We'll notify you once payment is confirmed</span>
+                </div>
+              </div>
+            )}
+
+            {paymentStatus === 'success' && (
+              <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-xl border-2 border-green-200 dark:border-green-800 text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-800/40 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="font-semibold text-green-700 dark:text-green-400">Payment Successful!</p>
+                  <p className="text-sm text-green-600 dark:text-green-500 mt-1">
+                    Your savings have been updated.
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={resetPayment}>
+                  Make Another Deposit
+                </Button>
+              </div>
+            )}
+
+            {paymentStatus === 'failed' && (
+              <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-xl border-2 border-red-200 dark:border-red-800 text-center space-y-4">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-800/40 rounded-full flex items-center justify-center mx-auto">
+                  <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="font-semibold text-red-700 dark:text-red-400">Payment Failed</p>
+                  <p className="text-sm text-red-600 dark:text-red-500 mt-1">
+                    The payment was not completed. Please try again.
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={resetPayment}>
+                  Try Again
+                </Button>
+              </div>
+            )}
+
+            {/* Show deposit form if idle and not enough savings OR not in loan flow */}
+            {paymentStatus === 'idle' && (!hasSufficientSavings || !isLoanFlow) && (
               <>
                 {/* Friendly Message */}
                 <div className="text-center p-4 bg-primary/5 rounded-xl border border-primary/10">
@@ -357,7 +450,6 @@ const Payment = () => {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       className="pl-10"
-                      disabled={isProcessing}
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">Enter the number registered with M-Pesa</p>
@@ -375,7 +467,6 @@ const Payment = () => {
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
                     min={100}
-                    disabled={isProcessing}
                   />
                 </div>
 
@@ -384,19 +475,10 @@ const Payment = () => {
                   size="lg"
                   className="w-full"
                   onClick={handlePayNow}
-                  disabled={isProcessing || !phoneNumber.trim() || !depositAmount}
+                  disabled={!phoneNumber.trim() || !depositAmount}
                 >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Sending prompt to your phone...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Pay Now
-                    </>
-                  )}
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Pay Now
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground">
@@ -405,8 +487,16 @@ const Payment = () => {
               </>
             )}
 
+            {/* Show processing state */}
+            {paymentStatus === 'processing' && (
+              <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Initiating payment...</p>
+              </div>
+            )}
+
             {/* Show proceed button only in loan flow with sufficient savings */}
-            {isLoanFlow && hasSufficientSavings && (
+            {isLoanFlow && hasSufficientSavings && paymentStatus === 'idle' && (
               <div className="space-y-4">
                 <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border-2 border-green-200 dark:border-green-800 flex gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -429,8 +519,8 @@ const Payment = () => {
               </div>
             )}
 
-            {/* Apply for Loan button - only show when not in loan flow */}
-            {!isLoanFlow && (
+            {/* Apply for Loan button - only show when not in loan flow and idle */}
+            {!isLoanFlow && paymentStatus === 'idle' && (
               <Button 
                 variant="cute"
                 className="w-full"
@@ -441,14 +531,16 @@ const Payment = () => {
               </Button>
             )}
 
-            <Button 
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate(isLoanFlow ? "/loan-selection" : "/dashboard")}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              {isLoanFlow ? "Back to Loan Selection" : "Back to Dashboard"}
-            </Button>
+            {paymentStatus === 'idle' && (
+              <Button 
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate(isLoanFlow ? "/loan-selection" : "/dashboard")}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                {isLoanFlow ? "Back to Loan Selection" : "Back to Dashboard"}
+              </Button>
+            )}
           </CardContent>
         </Card>
 
