@@ -77,7 +77,7 @@ const LoanSelection = () => {
     { icon: FileText, label: "History", active: false, onClick: () => navigate("/dashboard", { state: { scrollToHistory: true } }) },
   ];
 
-  const hasSufficientSavings = savingsBalance >= 500;
+  const hasSufficientSavings = savingsBalance >= 300;
 
   return (
     <div className="min-h-screen bg-background">
@@ -228,7 +228,7 @@ const LoanSelection = () => {
               </p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                You need at least <strong>KES 500</strong> in savings to proceed with disbursement. 
+                You need at least <strong>KES 300</strong> in savings to proceed with disbursement. 
                 Current balance: <strong>KES {savingsBalance.toLocaleString()}</strong>
               </p>
             )}

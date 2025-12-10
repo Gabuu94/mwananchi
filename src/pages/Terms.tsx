@@ -27,7 +27,7 @@ const Terms = () => {
                 <h3 className="font-bold text-lg">MWANANCHI CREDIT</h3>
                 <p className="text-muted-foreground">FINTECH HUB VENTURES 3</p>
                 <p className="text-muted-foreground">P.O BOX 30834-0100, NAIROBI, KENYA</p>
-                <p className="text-muted-foreground">+254 755 440 358</p>
+                <p className="text-muted-foreground">+254 746 277 428</p>
               </div>
 
               <div className="space-y-2">
@@ -181,7 +181,7 @@ const Terms = () => {
               <div className="space-y-3">
                 <h4 className="font-semibold text-primary">7. SAVINGS, INTEREST AND FEES</h4>
                 <div className="space-y-2 pl-4 text-muted-foreground">
-                  <p>7.1 A minimum savings balance of KES 500 is required before loan disbursement. Savings are withdrawable after your first loan has been repaid.</p>
+                  <p>7.1 A minimum savings balance of KES 300 is required before loan disbursement. Savings are withdrawable after your first loan has been repaid.</p>
                   <p>7.2 The interest payable shall be displayed on the App. Mwananchi Credit may charge Transaction Fees which are subject to change.</p>
                   <p>7.3 All payments shall be made in full without any set off or counter claim.</p>
                   <p>7.4 If you fail to make payments at the due date, late payment charges will apply.</p>
@@ -199,7 +199,7 @@ const Terms = () => {
                   <p className="mt-3"><strong>7.7 Customer Complaints</strong></p>
                   <p>You may lodge complaints through:</p>
                   <ul className="list-disc pl-6 space-y-1">
-                    <li>Telephone: +254 755 440 358</li>
+                    <li>Telephone: +254 746 277 428</li>
                     <li>Email: support@mwananchi-credit.co.ke</li>
                   </ul>
                   <p>We shall acknowledge receipt within 48 hours and endeavor to resolve within 7 working days.</p>
@@ -390,7 +390,7 @@ const Terms = () => {
                 <p className="text-sm text-muted-foreground">
                   <strong>Contact Us:</strong><br />
                   Email: support@mwananchi-credit.co.ke<br />
-                  Phone: +254 755 440 358<br />
+                  Phone: +254 746 277 428<br />
                   P.O Box 30834-0100, Nairobi, Kenya
                 </p>
               </div>

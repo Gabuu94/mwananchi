@@ -323,7 +323,7 @@ const Dashboard = () => {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm opacity-80">
-                {savingsBalance >= 500 ? (
+                {savingsBalance >= 300 ? (
                   <>
                     <CheckCircle className="w-4 h-4" />
                     <span>Eligible for loan disbursement</span>
@@ -331,7 +331,7 @@ const Dashboard = () => {
                 ) : (
                   <>
                     <Clock className="w-4 h-4" />
-                    <span>KES {(500 - savingsBalance).toLocaleString()} more to unlock loans</span>
+                    <span>KES {(300 - savingsBalance).toLocaleString()} more to unlock loans</span>
                   </>
                 )}
               </div>
