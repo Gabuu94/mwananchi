@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Wallet, CheckCircle, Loader2, ArrowLeft, DollarSign, Sparkles, Copy, XCircle } from "lucide-react";
+import { Wallet, CheckCircle, Loader2, ArrowLeft, DollarSign, Sparkles, Copy, XCircle, MessageCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,58 @@ import { Textarea } from "@/components/ui/textarea";
 const MIN_SAVINGS_BALANCE = 300;
 const TILL_NUMBER = "8071464";
 const BUSINESS_NAME = "FINTECH HUB VENTURES 3";
+const SUPPORT_WHATSAPP = "254746277428";
 
 type PaymentStatus = 'idle' | 'submitting' | 'success' | 'failed';
+
+interface ParsedMpesaMessage {
+  transactionCode: string | null;
+  amount: number | null;
+  recipient: string | null;
+  isValid: boolean;
+}
+
+// Parse M-Pesa message to extract transaction details
+const parseMpesaMessage = (message: string): ParsedMpesaMessage => {
+  const result: ParsedMpesaMessage = {
+    transactionCode: null,
+    amount: null,
+    recipient: null,
+    isValid: false,
+  };
+
+  if (!message) return result;
+
+  const upperMessage = message.toUpperCase();
+  
+  // Check if it's a valid M-Pesa message
+  if (!upperMessage.includes('CONFIRMED') && !upperMessage.includes('MPESA')) {
+    return result;
+  }
+
+  // Extract transaction code (e.g., "SJA1234567")
+  const transactionMatch = message.match(/\b([A-Z]{2,3}[A-Z0-9]{7,10})\b/i);
+  if (transactionMatch) {
+    result.transactionCode = transactionMatch[1].toUpperCase();
+  }
+
+  // Extract amount - handles formats like "Ksh1,000.00" or "KES 1000" or "Ksh1000"
+  const amountMatch = message.match(/Ksh?\s?([\d,]+(?:\.\d{2})?)/i);
+  if (amountMatch) {
+    const amountStr = amountMatch[1].replace(/,/g, '');
+    result.amount = parseFloat(amountStr);
+  }
+
+  // Check if the till number matches
+  if (upperMessage.includes(TILL_NUMBER)) {
+    result.recipient = TILL_NUMBER;
+  }
+
+  // Message is valid if we found transaction code and amount
+  result.isValid = !!(result.transactionCode && result.amount);
+
+  return result;
+};
 
 const Payment = () => {
   const [loanAmount, setLoanAmount] = useState<number | null>(null);
@@ -20,6 +70,7 @@ const Payment = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [depositAmount, setDepositAmount] = useState("");
   const [mpesaMessage, setMpesaMessage] = useState("");
+  const [parsedMessage, setParsedMessage] = useState<ParsedMpesaMessage | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle');
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -34,6 +85,21 @@ const Payment = () => {
     }
     fetchSavingsBalance();
   }, []);
+
+  // Parse M-Pesa message when it changes
+  useEffect(() => {
+    if (mpesaMessage.trim()) {
+      const parsed = parseMpesaMessage(mpesaMessage);
+      setParsedMessage(parsed);
+      
+      // Auto-fill amount if parsed successfully and amount field is empty
+      if (parsed.amount && !depositAmount) {
+        setDepositAmount(Math.floor(parsed.amount).toString());
+      }
+    } else {
+      setParsedMessage(null);
+    }
+  }, [mpesaMessage]);
 
   const fetchSavingsBalance = useCallback(async () => {
     try {
@@ -72,6 +138,11 @@ const Payment = () => {
     });
   };
 
+  const openWhatsApp = () => {
+    const message = encodeURIComponent("Hello! I need help with my Mwananchi Credit account.");
+    window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${message}`, '_blank');
+  };
+
   const handleSubmitDeposit = async () => {
     const amount = parseInt(depositAmount);
     
@@ -93,14 +164,32 @@ const Payment = () => {
       return;
     }
 
-    // Basic validation for M-Pesa message format
-    if (!mpesaMessage.toLowerCase().includes('confirmed') && !mpesaMessage.toLowerCase().includes('mpesa')) {
+    // Validate parsed message
+    if (!parsedMessage?.isValid) {
       toast({
         title: "Invalid Message",
         description: "Please paste a valid M-Pesa confirmation message",
         variant: "destructive",
       });
       return;
+    }
+
+    // Verify amount matches
+    if (parsedMessage.amount && Math.abs(parsedMessage.amount - amount) > 1) {
+      toast({
+        title: "Amount Mismatch",
+        description: `The M-Pesa message shows KES ${parsedMessage.amount.toLocaleString()}, but you entered KES ${amount.toLocaleString()}. Please correct the amount.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Warn if till number doesn't match (but still allow)
+    if (!parsedMessage.recipient) {
+      const proceed = window.confirm(
+        `We couldn't verify the till number in your message. Please ensure you sent to Till ${TILL_NUMBER} (${BUSINESS_NAME}). Do you want to proceed?`
+      );
+      if (!proceed) return;
     }
 
     setPaymentStatus('submitting');
@@ -113,9 +202,7 @@ const Payment = () => {
         return;
       }
 
-      // Extract transaction code from M-Pesa message (usually starts with letters and followed by numbers)
-      const transactionMatch = mpesaMessage.match(/[A-Z]{2,}[0-9A-Z]+/i);
-      const transactionCode = transactionMatch ? transactionMatch[0].toUpperCase() : `DEP_${Date.now()}`;
+      const transactionCode = parsedMessage.transactionCode || `DEP_${Date.now()}`;
 
       // Create deposit record (admin will verify)
       const { error } = await supabase
@@ -133,6 +220,7 @@ const Payment = () => {
       setPaymentStatus('success');
       setMpesaMessage("");
       setDepositAmount("");
+      setParsedMessage(null);
 
       toast({
         title: "Deposit Submitted!",
@@ -233,6 +321,7 @@ const Payment = () => {
 
   const resetPayment = () => {
     setPaymentStatus('idle');
+    setParsedMessage(null);
     fetchSavingsBalance();
   };
 
@@ -377,6 +466,64 @@ const Payment = () => {
                   </div>
                 </div>
 
+                {/* M-Pesa Message Input - First, so amount auto-fills */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">M-Pesa Confirmation Message</label>
+                  <Textarea
+                    placeholder="Paste your M-Pesa confirmation message here..."
+                    value={mpesaMessage}
+                    onChange={(e) => setMpesaMessage(e.target.value)}
+                    rows={4}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Paste the full SMS you received from M-Pesa after payment
+                  </p>
+                  
+                  {/* Parsed Message Feedback */}
+                  {parsedMessage && mpesaMessage.trim() && (
+                    <div className={`mt-3 p-3 rounded-lg border ${
+                      parsedMessage.isValid 
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+                        : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                    }`}>
+                      <div className="flex items-start gap-2">
+                        {parsedMessage.isValid ? (
+                          <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                        )}
+                        <div className="text-sm space-y-1">
+                          {parsedMessage.transactionCode && (
+                            <p className="text-foreground">
+                              <strong>Transaction:</strong> {parsedMessage.transactionCode}
+                            </p>
+                          )}
+                          {parsedMessage.amount && (
+                            <p className="text-foreground">
+                              <strong>Amount:</strong> KES {parsedMessage.amount.toLocaleString()}
+                            </p>
+                          )}
+                          {parsedMessage.recipient ? (
+                            <p className="text-green-600 dark:text-green-400">
+                              <strong>Till Number:</strong> {parsedMessage.recipient} ✓
+                            </p>
+                          ) : parsedMessage.isValid && (
+                            <p className="text-yellow-600 dark:text-yellow-400 text-xs">
+                              Could not verify till number. Please ensure you sent to {TILL_NUMBER}
+                            </p>
+                          )}
+                          {!parsedMessage.isValid && (
+                            <p className="text-yellow-600 dark:text-yellow-400">
+                              Please paste a valid M-Pesa confirmation message
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Amount Input */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium">Amount Deposited (KES)</label>
@@ -390,21 +537,12 @@ const Payment = () => {
                     onChange={(e) => setDepositAmount(e.target.value)}
                     min={100}
                   />
-                </div>
-
-                {/* M-Pesa Message Input */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium">M-Pesa Confirmation Message</label>
-                  <Textarea
-                    placeholder="Paste your M-Pesa confirmation message here..."
-                    value={mpesaMessage}
-                    onChange={(e) => setMpesaMessage(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Paste the full SMS you received from M-Pesa after payment
-                  </p>
+                  {parsedMessage?.amount && depositAmount && Math.abs(parsedMessage.amount - parseInt(depositAmount)) > 1 && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      Amount doesn't match M-Pesa message (KES {parsedMessage.amount.toLocaleString()})
+                    </p>
+                  )}
                 </div>
 
                 <Button 
@@ -412,7 +550,7 @@ const Payment = () => {
                   size="lg"
                   className="w-full"
                   onClick={handleSubmitDeposit}
-                  disabled={!depositAmount || !mpesaMessage.trim()}
+                  disabled={!depositAmount || !mpesaMessage.trim() || !parsedMessage?.isValid}
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Submit Deposit
@@ -481,12 +619,22 @@ const Payment = () => {
           </CardContent>
         </Card>
 
-        {/* Help Card */}
-        <Card className="bg-card/50">
-          <CardContent className="py-6">
-            <p className="text-sm text-center text-muted-foreground">
-              Need help? Contact us on WhatsApp: <strong className="text-foreground">0755440358</strong>
-            </p>
+        {/* WhatsApp Support Card */}
+        <Card className="bg-card border-2 border-green-200 dark:border-green-800">
+          <CardContent className="py-5">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <p className="font-semibold text-foreground">Need Help?</p>
+                <p className="text-sm text-muted-foreground">Chat with us on WhatsApp for instant support</p>
+              </div>
+              <Button 
+                onClick={openWhatsApp}
+                className="bg-green-600 hover:bg-green-700 text-white gap-2"
+              >
+                <MessageCircle className="w-5 h-5" />
+                Chat on WhatsApp
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
