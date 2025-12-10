@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
       manifest: {
-        name: "Hela Loans",
-        short_name: "Hela Loans",
-        description: "Fast, Friendly, and Reliable Loans for Everyone",
+        name: "Mwananchi Credit",
+        short_name: "Mwananchi Credit",
+        description: "Investor in People - Fast and Friendly Loans",
         theme_color: "#2563eb",
         background_color: "#ffffff",
         display: "standalone",
