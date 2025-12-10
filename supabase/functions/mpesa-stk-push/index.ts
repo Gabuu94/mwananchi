@@ -15,99 +15,80 @@ serve(async (req) => {
   try {
     const { phoneNumber, amount, applicationId } = await req.json();
 
-    console.log('STK Push request received:', { phoneNumber, amount, applicationId });
+    console.log('Paystack STK Push request received:', { phoneNumber, amount, applicationId });
 
     // Validate input
     if (!phoneNumber || !amount || !applicationId) {
       throw new Error('Missing required fields: phoneNumber, amount, or applicationId');
     }
 
-    // Format phone number (remove + or leading 0, ensure it starts with 254)
+    // Format phone number for Paystack (must be in format +254XXXXXXXXX)
     let formattedPhone = phoneNumber.replace(/\D/g, ''); // Remove non-digits
     if (formattedPhone.startsWith('0')) {
-      formattedPhone = '254' + formattedPhone.substring(1);
+      formattedPhone = '+254' + formattedPhone.substring(1);
     } else if (formattedPhone.startsWith('254')) {
-      // Already formatted correctly
-    } else if (formattedPhone.startsWith('+254')) {
-      formattedPhone = formattedPhone.substring(1);
+      formattedPhone = '+' + formattedPhone;
+    } else if (!formattedPhone.startsWith('+254')) {
+      formattedPhone = '+254' + formattedPhone;
     }
 
     console.log('Formatted phone:', formattedPhone);
 
-    // Get M-Pesa credentials
-    const consumerKey = Deno.env.get('MPESA_CONSUMER_KEY');
-    const consumerSecret = Deno.env.get('MPESA_CONSUMER_SECRET');
-    const businessShortCode = Deno.env.get('MPESA_BUSINESS_SHORT_CODE');
-    const passkey = Deno.env.get('MPESA_PASSKEY');
+    // Get Paystack secret key
+    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
 
-    if (!consumerKey || !consumerSecret || !businessShortCode || !passkey) {
-      throw new Error('M-Pesa credentials not configured');
+    if (!paystackSecretKey) {
+      throw new Error('Paystack credentials not configured');
     }
 
-    // Generate OAuth token
-    const auth = btoa(`${consumerKey}:${consumerSecret}`);
-    const tokenResponse = await fetch(
-      'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',
-      {
-        headers: {
-          'Authorization': `Basic ${auth}`,
-        },
+    // Generate unique reference
+    const reference = `hela_${applicationId}_${Date.now()}`;
+
+    // Initialize Paystack Mobile Money charge
+    const chargePayload = {
+      email: `${formattedPhone.replace('+', '')}@helapesa.com`, // Paystack requires email
+      amount: Math.floor(amount * 100), // Paystack uses smallest currency unit (cents)
+      currency: 'KES',
+      mobile_money: {
+        phone: formattedPhone,
+        provider: 'mpesa'
+      },
+      reference: reference,
+      metadata: {
+        application_id: applicationId,
+        custom_fields: [
+          {
+            display_name: "Application ID",
+            variable_name: "application_id",
+            value: applicationId
+          }
+        ]
       }
-    );
-
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('Token generation failed:', errorText);
-      throw new Error('Failed to generate M-Pesa access token');
-    }
-
-    const { access_token } = await tokenResponse.json();
-    console.log('Access token generated successfully');
-
-    // Generate timestamp and password
-    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
-    const password = btoa(`${businessShortCode}${passkey}${timestamp}`);
-
-    // Prepare STK Push request
-    const callbackUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/mpesa-callback`;
-    
-    const stkPushPayload = {
-      BusinessShortCode: businessShortCode,
-      Password: password,
-      Timestamp: timestamp,
-      TransactionType: 'CustomerPayBillOnline',
-      Amount: Math.floor(amount), // Ensure amount is an integer
-      PartyA: formattedPhone,
-      PartyB: businessShortCode,
-      PhoneNumber: formattedPhone,
-      CallBackURL: callbackUrl,
-      AccountReference: applicationId,
-      TransactionDesc: 'Loan Processing Fee',
     };
 
-    console.log('STK Push payload:', { ...stkPushPayload, Password: '[REDACTED]' });
+    console.log('Paystack charge payload:', { ...chargePayload, email: '[REDACTED]' });
 
-    // Send STK Push request
-    const stkResponse = await fetch(
-      'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest',
+    // Send charge request to Paystack
+    const chargeResponse = await fetch(
+      'https://api.paystack.co/charge',
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${access_token}`,
+          'Authorization': `Bearer ${paystackSecretKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(stkPushPayload),
+        body: JSON.stringify(chargePayload),
       }
     );
 
-    const stkResult = await stkResponse.json();
-    console.log('STK Push response:', stkResult);
+    const chargeResult = await chargeResponse.json();
+    console.log('Paystack charge response:', chargeResult);
 
-    if (!stkResponse.ok || stkResult.ResponseCode !== '0') {
-      throw new Error(stkResult.errorMessage || stkResult.ResponseDescription || 'STK Push failed');
+    if (!chargeResult.status) {
+      throw new Error(chargeResult.message || 'Failed to initiate payment');
     }
 
-    // Store the checkout request ID for tracking
+    // Store the reference for tracking
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -118,7 +99,7 @@ serve(async (req) => {
       application_id: applicationId,
       loan_amount: amount,
       processing_fee: amount,
-      transaction_code: stkResult.CheckoutRequestID,
+      transaction_code: reference,
       payment_verified: false,
       disbursed: false,
     });
@@ -126,16 +107,17 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'STK Push sent successfully',
-        checkoutRequestId: stkResult.CheckoutRequestID,
-        merchantRequestId: stkResult.MerchantRequestID,
+        message: 'STK Push sent successfully. Check your phone for the M-Pesa prompt.',
+        reference: reference,
+        paystackReference: chargeResult.data?.reference,
+        displayText: chargeResult.data?.display_text || 'Please enter your M-Pesa PIN when prompted',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   } catch (error) {
-    console.error('Error in STK Push:', error);
+    console.error('Error in Paystack STK Push:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return new Response(
       JSON.stringify({
