@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Banknote, CreditCard, PiggyBank, FileText, ArrowRight, Info, Eye, EyeOff, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import helaPesaLogo from "@/assets/hela-pesa-logo.png";
+import mwananchiLogo from "@/assets/mwananchi-credit-logo.png";
 
 const LoanSelection = () => {
   const [loanLimit, setLoanLimit] = useState(0);
@@ -18,7 +18,7 @@ const LoanSelection = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const limit = localStorage.getItem("helaLoanLimit");
+    const limit = localStorage.getItem("mwananchiLoanLimit");
     if (!limit) {
       navigate("/application");
       return;
@@ -87,7 +87,7 @@ const LoanSelection = () => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
-              <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-cover" />
+              <img src={mwananchiLogo} alt="Mwananchi Credit" className="w-full h-full object-cover" />
             </div>
             <div className="text-white">
               <p className="text-sm opacity-80">Welcome,</p>

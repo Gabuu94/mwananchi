@@ -10,7 +10,7 @@ const LoanLimit = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const limit = localStorage.getItem("helaLoanLimit");
+    const limit = localStorage.getItem("mwananchiLoanLimit");
     if (!limit) {
       navigate("/application");
       return;

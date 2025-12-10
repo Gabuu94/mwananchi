@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import helaPesaLogo from "@/assets/hela-pesa-logo.png";
+import mwananchiLogo from "@/assets/mwananchi-credit-logo.png";
 
 interface ComingSoonDialogProps {
   open: boolean;
@@ -18,7 +18,7 @@ export const ComingSoonDialog = ({ open, onOpenChange }: ComingSoonDialogProps) 
       <DialogContent className="sm:max-w-md border-2 border-primary/20">
         <DialogHeader className="text-center">
           <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center animate-bounce-soft overflow-hidden">
-            <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-cover" />
+            <img src={mwananchiLogo} alt="Mwananchi Credit" className="w-full h-full object-cover" />
           </div>
           <DialogTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Coming Soon

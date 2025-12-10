@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { X, Download, Smartphone } from "lucide-react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
-import helaPesaLogo from "@/assets/hela-pesa-logo.png";
+import mwananchiLogo from "@/assets/mwananchi-credit-logo.png";
 
 const InstallPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -54,9 +54,9 @@ const InstallPrompt = () => {
         
         <DialogHeader className="text-center space-y-2">
           <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mx-auto overflow-hidden">
-            <img src={helaPesaLogo} alt="Hela Loans" className="w-full h-full object-cover" />
+            <img src={mwananchiLogo} alt="Mwananchi Credit" className="w-full h-full object-cover" />
           </div>
-          <DialogTitle className="text-lg">Get Hela Loans App</DialogTitle>
+          <DialogTitle className="text-lg">Get Mwananchi Credit App</DialogTitle>
           <DialogDescription className="text-center text-xs">
             Install for quick access to loans & savings
           </DialogDescription>
