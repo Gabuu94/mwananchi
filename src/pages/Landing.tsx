@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Zap } from "lucide-react";
-import helaPesaLogo from "@/assets/hela-pesa-logo.png";
-import helaLogo from "@/assets/hela-logo.png";
+import { Shield, Zap, Users } from "lucide-react";
+import mwananchiLogo from "@/assets/mwananchi-credit-logo.png";
 import DecorativeBackground from "@/components/DecorativeBackground";
 import AppDownloadSection from "@/components/AppDownloadSection";
 
@@ -18,9 +17,9 @@ const Landing = () => {
           {/* Logo */}
           <div className="animate-float">
             <img 
-              src={helaLogo} 
-              alt="Hela Loans" 
-              className="h-24 md:h-32 w-auto"
+              src={mwananchiLogo} 
+              alt="Mwananchi Credit" 
+              className="h-24 md:h-32 w-auto rounded-2xl"
             />
           </div>
 
@@ -41,7 +40,7 @@ const Landing = () => {
             onClick={() => navigate("/auth")}
             className="animate-bounce-soft"
           >
-            <img src={helaPesaLogo} alt="Hela Pesa" className="w-5 h-5 inline-block mr-2" />
+            <Users className="w-5 h-5 mr-2" />
             Apply Now
           </Button>
 
@@ -68,8 +67,8 @@ const Landing = () => {
             </div>
 
             <div className="bg-card p-6 rounded-2xl shadow-card hover:shadow-soft transition-all duration-300 hover:-translate-y-2">
-              <div className="w-12 h-12 bg-accent/30 rounded-xl flex items-center justify-center mb-4 mx-auto overflow-hidden">
-                <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-cover" />
+              <div className="w-12 h-12 bg-accent/30 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                <Users className="w-6 h-6 text-accent-foreground" />
               </div>
               <h3 className="font-bold text-lg mb-2">Simple Process</h3>
               <p className="text-muted-foreground text-sm">
@@ -85,7 +84,7 @@ const Landing = () => {
 
       {/* Footer */}
       <footer className="py-8 text-center text-muted-foreground text-sm">
-        <p>© 2025 Hela Loans. All rights reserved.</p>
+        <p>© 2025 Mwananchi Credit. Investor in People. All rights reserved.</p>
       </footer>
     </div>
   );

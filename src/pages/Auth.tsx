@@ -8,7 +8,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { LogIn, UserPlus, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import helaLogo from "@/assets/hela-logo.png";
+import mwananchiLogo from "@/assets/mwananchi-credit-logo.png";
 import DecorativeBackground from "@/components/DecorativeBackground";
 
 const Auth = () => {
@@ -115,8 +115,8 @@ const Auth = () => {
     }
 
     try {
-      // Use phone as email (phone@helaloans.com)
-      const email = `${formData.phoneNumber}@helaloans.com`;
+      // Use phone as email (phone@mwananchicredit.com)
+      const email = `${formData.phoneNumber}@mwananchicredit.com`;
       
       if (isLogin) {
         const { data: authData, error } = await supabase.auth.signInWithPassword({
@@ -163,7 +163,7 @@ const Auth = () => {
 
         toast({
           title: "Account Created",
-          description: "Welcome to Hela Loans!",
+          description: "Welcome to Mwananchi Credit!",
         });
         
         navigate("/dashboard");
@@ -186,13 +186,13 @@ const Auth = () => {
       <Card className="w-full max-w-md shadow-card relative z-10">
         <CardHeader className="text-center space-y-4">
           <img 
-            src={helaLogo} 
-            alt="Hela Loans" 
-            className="h-16 w-auto mx-auto"
+            src={mwananchiLogo} 
+            alt="Mwananchi Credit" 
+            className="h-16 w-auto mx-auto rounded-xl"
           />
           <div>
             <CardTitle className="text-2xl">
-              {isLogin ? "Welcome Back!" : "Join Hela Loans"}
+              {isLogin ? "Welcome Back!" : "Join Mwananchi Credit"}
             </CardTitle>
             <CardDescription>
               {isLogin 

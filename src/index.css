@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 150 40% 98%;
+    --background: 220 30% 98%;
     --foreground: 220 40% 15%;
 
     --card: 0 0% 100%;
@@ -17,31 +17,31 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 40% 15%;
 
-    --primary: 174 70% 45%;
+    --primary: 220 80% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 174 65% 55%;
+    --primary-glow: 220 75% 60%;
 
-    --secondary: 270 50% 75%;
+    --secondary: 220 60% 85%;
     --secondary-foreground: 220 40% 15%;
 
-    --muted: 150 30% 92%;
+    --muted: 220 20% 92%;
     --muted-foreground: 220 20% 50%;
 
-    --accent: 150 60% 70%;
+    --accent: 210 70% 70%;
     --accent-foreground: 220 40% 15%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 25% 88%;
-    --input: 150 25% 88%;
-    --ring: 174 70% 45%;
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 220 80% 50%;
 
     --radius: 1rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(174 70% 45%), hsl(174 65% 55%));
-    --gradient-soft: linear-gradient(180deg, hsl(150 40% 98%), hsl(270 30% 96%));
-    --shadow-soft: 0 4px 20px -4px hsl(174 70% 45% / 0.15);
+    --gradient-primary: linear-gradient(135deg, hsl(220 80% 50%), hsl(220 75% 60%));
+    --gradient-soft: linear-gradient(180deg, hsl(220 30% 98%), hsl(210 40% 96%));
+    --shadow-soft: 0 4px 20px -4px hsl(220 80% 50% / 0.15);
     --shadow-card: 0 8px 30px -6px hsl(220 40% 15% / 0.1);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -64,24 +64,24 @@ All colors MUST be HSL.
 
   .dark {
     --background: 220 40% 8%;
-    --foreground: 150 20% 95%;
+    --foreground: 210 20% 95%;
 
     --card: 220 40% 10%;
-    --card-foreground: 150 20% 95%;
+    --card-foreground: 210 20% 95%;
 
     --popover: 220 40% 10%;
-    --popover-foreground: 150 20% 95%;
+    --popover-foreground: 210 20% 95%;
 
-    --primary: 174 70% 50%;
+    --primary: 220 80% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 270 40% 65%;
+    --secondary: 220 40% 65%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 30% 15%;
-    --muted-foreground: 150 20% 70%;
+    --muted-foreground: 210 20% 70%;
 
-    --accent: 150 60% 60%;
+    --accent: 210 60% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 50.6%;
@@ -89,7 +89,7 @@ All colors MUST be HSL.
 
     --border: 220 30% 18%;
     --input: 220 30% 18%;
-    --ring: 174 70% 50%;
+    --ring: 220 80% 55%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

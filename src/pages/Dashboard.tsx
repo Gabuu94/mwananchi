@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import helaLogo from "@/assets/hela-logo.png";
+import mwananchiLogo from "@/assets/mwananchi-credit-logo.png";
 
 interface SavingsDeposit {
   id: string;
@@ -276,7 +276,7 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between gap-3 animate-float">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto flex-shrink-0 drop-shadow-lg" />
+            <img src={mwananchiLogo} alt="Mwananchi Credit" className="h-10 sm:h-12 w-auto flex-shrink-0 drop-shadow-lg rounded-xl" />
             <div className="min-w-0 flex-1">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               My Account

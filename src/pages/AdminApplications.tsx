@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import helaLogo from "@/assets/hela-logo.png";
+import mwananchiLogo from "@/assets/mwananchi-credit-logo.png";
 
 const AdminApplications = () => {
   const navigate = useNavigate();
@@ -65,7 +65,7 @@ const AdminApplications = () => {
           <Button variant="outline" size="icon" onClick={() => navigate("/admin")}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <img src={helaLogo} alt="Hela Loans" className="h-10 sm:h-12 w-auto" />
+          <img src={mwananchiLogo} alt="Mwananchi Credit" className="h-10 sm:h-12 w-auto rounded-xl" />
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Applications</h1>
         </div>
 

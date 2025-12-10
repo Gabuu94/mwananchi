@@ -1,18 +1,18 @@
 const DecorativeBackground = () => {
   const patterns = [
-    { text: "helapesa", top: "5%", left: "5%", rotate: "-15deg", size: "text-4xl" },
-    { text: "hela", top: "15%", right: "10%", rotate: "20deg", size: "text-6xl" },
-    { text: "pesa", top: "25%", left: "15%", rotate: "10deg", size: "text-3xl" },
-    { text: "helapesa", top: "35%", right: "5%", rotate: "-25deg", size: "text-5xl" },
-    { text: "hela", top: "45%", left: "3%", rotate: "30deg", size: "text-4xl" },
-    { text: "pesa", top: "55%", right: "15%", rotate: "-10deg", size: "text-3xl" },
-    { text: "helapesa", top: "65%", left: "20%", rotate: "15deg", size: "text-6xl" },
-    { text: "hela", top: "75%", right: "8%", rotate: "-20deg", size: "text-4xl" },
-    { text: "pesa", top: "85%", left: "8%", rotate: "25deg", size: "text-5xl" },
-    { text: "helapesa", bottom: "5%", right: "20%", rotate: "-5deg", size: "text-3xl" },
-    { text: "hela", top: "10%", left: "40%", rotate: "35deg", size: "text-5xl" },
-    { text: "pesa", top: "50%", left: "45%", rotate: "-30deg", size: "text-4xl" },
-    { text: "helapesa", top: "80%", left: "50%", rotate: "12deg", size: "text-3xl" },
+    { text: "mwananchi", top: "5%", left: "5%", rotate: "-15deg", size: "text-4xl" },
+    { text: "credit", top: "15%", right: "10%", rotate: "20deg", size: "text-6xl" },
+    { text: "invest", top: "25%", left: "15%", rotate: "10deg", size: "text-3xl" },
+    { text: "mwananchi", top: "35%", right: "5%", rotate: "-25deg", size: "text-5xl" },
+    { text: "credit", top: "45%", left: "3%", rotate: "30deg", size: "text-4xl" },
+    { text: "people", top: "55%", right: "15%", rotate: "-10deg", size: "text-3xl" },
+    { text: "mwananchi", top: "65%", left: "20%", rotate: "15deg", size: "text-6xl" },
+    { text: "credit", top: "75%", right: "8%", rotate: "-20deg", size: "text-4xl" },
+    { text: "invest", top: "85%", left: "8%", rotate: "25deg", size: "text-5xl" },
+    { text: "mwananchi", bottom: "5%", right: "20%", rotate: "-5deg", size: "text-3xl" },
+    { text: "credit", top: "10%", left: "40%", rotate: "35deg", size: "text-5xl" },
+    { text: "people", top: "50%", left: "45%", rotate: "-30deg", size: "text-4xl" },
+    { text: "mwananchi", top: "80%", left: "50%", rotate: "12deg", size: "text-3xl" },
   ];
 
   return (

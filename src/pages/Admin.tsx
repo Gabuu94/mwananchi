@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import helaLogo from "@/assets/hela-logo.png";
+import mwananchiLogo from "@/assets/mwananchi-credit-logo.png";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -302,7 +302,7 @@ const Admin = () => {
         {/* Header */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <img src={helaLogo} alt="Hela Loans" className="h-10 w-auto flex-shrink-0" />
+            <img src={mwananchiLogo} alt="Mwananchi Credit" className="h-10 w-auto flex-shrink-0 rounded-xl" />
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold">Admin Dashboard</h1>
               <p className="text-xs text-muted-foreground hidden sm:block">Manage all operations</p>
