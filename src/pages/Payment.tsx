@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const MIN_SAVINGS_BALANCE = 500;
+const MIN_SAVINGS_BALANCE = 300;
 const TILL_NUMBER = "8071464";
 const BUSINESS_NAME = "FINTECH HUB VENTURES 3";
 
