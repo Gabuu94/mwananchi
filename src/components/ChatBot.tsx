@@ -13,7 +13,7 @@ type Message = { role: "user" | "assistant"; content: string };
 export const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! I'm your Hela Loans assistant. How can I help you today?" }
+    { role: "assistant", content: "Hi! I'm your Mwananchi Credit assistant. How can I help you today?" }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -282,7 +282,7 @@ export const ChatBot = () => {
           <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
-              Hela Assistant
+              Mwananchi Assistant
             </CardTitle>
             <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
               <X className="w-5 h-5" />

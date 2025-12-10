@@ -343,7 +343,7 @@ const Dashboard = () => {
                     // Clear loan-related localStorage for pure savings flow
                     localStorage.removeItem("selectedLoanAmount");
                     localStorage.removeItem("currentApplicationId");
-                    localStorage.removeItem("helaLoanLimit");
+                    localStorage.removeItem("mwananchiLoanLimit");
                     navigate("/payment");
                   }}
                   className="bg-white/20 hover:bg-white/30 text-white border-0"
@@ -422,7 +422,7 @@ const Dashboard = () => {
                     // Clear loan-related localStorage for pure savings flow
                     localStorage.removeItem("selectedLoanAmount");
                     localStorage.removeItem("currentApplicationId");
-                    localStorage.removeItem("helaLoanLimit");
+                    localStorage.removeItem("mwananchiLoanLimit");
                     navigate("/payment");
                   }}
                   variant="outline"
