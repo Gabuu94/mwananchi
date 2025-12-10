@@ -1,13 +1,1 @@
-project_id = "atyvmqvgvjjnkvjpnzky"
-
-[functions.send-reset-code]
-verify_jwt = false
-
-[functions.verify-reset-code]
-verify_jwt = false
-
-[functions.mpesa-callback]
-verify_jwt = false
-
-[functions.paystack-webhook]
-verify_jwt = false
+project_id = "tflvmwotbqrckywnuexd"
