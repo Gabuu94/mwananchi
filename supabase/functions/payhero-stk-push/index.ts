@@ -42,6 +42,18 @@ serve(async (req) => {
       throw new Error('PayHero credentials not configured');
     }
 
+    // PayHero uses Basic Auth - the API key should be base64 encoded
+    // If user provided raw credentials (username:password), encode them
+    // If already base64 encoded, use as-is
+    let authHeader = payheroApiKey;
+    
+    // Check if it looks like it's not base64 (contains colon = raw credentials)
+    if (payheroApiKey.includes(':')) {
+      // Raw credentials format: username:password - encode to base64
+      authHeader = btoa(payheroApiKey);
+    }
+    // If no colon, assume it's already base64 encoded or just the token
+
     // Generate unique reference
     const txReference = reference || `MWANANCHI_${Date.now()}`;
 
@@ -56,12 +68,13 @@ serve(async (req) => {
     };
 
     console.log('PayHero STK payload:', stkPayload);
+    console.log('Using auth header (masked):', authHeader.substring(0, 10) + '...');
 
     // Send STK Push request to PayHero
     const stkResponse = await fetch('https://backend.payhero.co.ke/api/v2/payments', {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${payheroApiKey}`,
+        'Authorization': `Basic ${authHeader}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(stkPayload),
