@@ -35,12 +35,15 @@ serve(async (req) => {
     console.log('Formatted phone:', formattedPhone);
 
     // Get PayHero credentials
-    const payheroApiKey = Deno.env.get('PAYHERO_API_KEY');
+    const payheroApiKeyRaw = Deno.env.get('PAYHERO_API_KEY');
     const payheroChannelId = Deno.env.get('PAYHERO_CHANNEL_ID');
 
-    if (!payheroApiKey || !payheroChannelId) {
+    if (!payheroApiKeyRaw || !payheroChannelId) {
       throw new Error('PayHero credentials not configured');
     }
+
+    // Trim any whitespace/newlines from the API key
+    const payheroApiKey = payheroApiKeyRaw.trim();
 
     // PayHero uses Basic Auth - the API key should be base64 encoded
     // If user provided raw credentials (username:password), encode them
@@ -53,6 +56,9 @@ serve(async (req) => {
       authHeader = btoa(payheroApiKey);
     }
     // If no colon, assume it's already base64 encoded or just the token
+    
+    console.log('API Key length:', payheroApiKey.length);
+    console.log('Channel ID:', payheroChannelId);
 
     // Generate unique reference
     const txReference = reference || `MWANANCHI_${Date.now()}`;
