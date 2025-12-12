@@ -1,1 +1,25 @@
 project_id = "tflvmwotbqrckywnuexd"
+
+[functions.payhero-stk-push]
+verify_jwt = false
+
+[functions.payhero-callback]
+verify_jwt = false
+
+[functions.chat]
+verify_jwt = false
+
+[functions.paystack-webhook]
+verify_jwt = false
+
+[functions.send-reset-code]
+verify_jwt = false
+
+[functions.verify-reset-code]
+verify_jwt = false
+
+[functions.mpesa-stk-push]
+verify_jwt = false
+
+[functions.mpesa-callback]
+verify_jwt = false

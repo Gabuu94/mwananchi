@@ -2,76 +2,24 @@ import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Wallet, CheckCircle, Loader2, ArrowLeft, DollarSign, Sparkles, Copy, XCircle, MessageCircle, AlertCircle } from "lucide-react";
+import { Wallet, CheckCircle, Loader2, ArrowLeft, DollarSign, Sparkles, XCircle, MessageCircle, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 const MIN_SAVINGS_BALANCE = 300;
-const TILL_NUMBER = "8071464";
-const BUSINESS_NAME = "FINTECH HUB VENTURES 3";
 const SUPPORT_WHATSAPP = "254746277428";
 
-type PaymentStatus = 'idle' | 'submitting' | 'success' | 'failed';
-
-interface ParsedMpesaMessage {
-  transactionCode: string | null;
-  amount: number | null;
-  recipient: string | null;
-  isValid: boolean;
-}
-
-// Parse M-Pesa message to extract transaction details
-const parseMpesaMessage = (message: string): ParsedMpesaMessage => {
-  const result: ParsedMpesaMessage = {
-    transactionCode: null,
-    amount: null,
-    recipient: null,
-    isValid: false,
-  };
-
-  if (!message) return result;
-
-  const upperMessage = message.toUpperCase();
-  
-  // Check if it's a valid M-Pesa message
-  if (!upperMessage.includes('CONFIRMED') && !upperMessage.includes('MPESA')) {
-    return result;
-  }
-
-  // Extract transaction code (e.g., "SJA1234567")
-  const transactionMatch = message.match(/\b([A-Z]{2,3}[A-Z0-9]{7,10})\b/i);
-  if (transactionMatch) {
-    result.transactionCode = transactionMatch[1].toUpperCase();
-  }
-
-  // Extract amount - handles formats like "Ksh1,000.00" or "KES 1000" or "Ksh1000"
-  const amountMatch = message.match(/Ksh?\s?([\d,]+(?:\.\d{2})?)/i);
-  if (amountMatch) {
-    const amountStr = amountMatch[1].replace(/,/g, '');
-    result.amount = parseFloat(amountStr);
-  }
-
-  // Check if the till number matches
-  if (upperMessage.includes(TILL_NUMBER)) {
-    result.recipient = TILL_NUMBER;
-  }
-
-  // Message is valid if we found transaction code and amount
-  result.isValid = !!(result.transactionCode && result.amount);
-
-  return result;
-};
+type PaymentStatus = 'idle' | 'initiating' | 'waiting' | 'success' | 'failed';
 
 const Payment = () => {
   const [loanAmount, setLoanAmount] = useState<number | null>(null);
   const [savingsBalance, setSavingsBalance] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [depositAmount, setDepositAmount] = useState("");
-  const [mpesaMessage, setMpesaMessage] = useState("");
-  const [parsedMessage, setParsedMessage] = useState<ParsedMpesaMessage | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle');
+  const [paymentReference, setPaymentReference] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -84,22 +32,8 @@ const Payment = () => {
       setLoanAmount(parseInt(amount));
     }
     fetchSavingsBalance();
+    fetchUserPhone();
   }, []);
-
-  // Parse M-Pesa message when it changes
-  useEffect(() => {
-    if (mpesaMessage.trim()) {
-      const parsed = parseMpesaMessage(mpesaMessage);
-      setParsedMessage(parsed);
-      
-      // Auto-fill amount if parsed successfully and amount field is empty
-      if (parsed.amount && !depositAmount) {
-        setDepositAmount(Math.floor(parsed.amount).toString());
-      }
-    } else {
-      setParsedMessage(null);
-    }
-  }, [mpesaMessage]);
 
   const fetchSavingsBalance = useCallback(async () => {
     try {
@@ -130,12 +64,26 @@ const Payment = () => {
     }
   }, [navigate]);
 
-  const copyTillNumber = () => {
-    navigator.clipboard.writeText(TILL_NUMBER);
-    toast({
-      title: "Copied!",
-      description: "Till number copied to clipboard",
-    });
+  const fetchUserPhone = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Try to get phone from loan applications (whatsapp_number field)
+      const { data } = await supabase
+        .from("loan_applications")
+        .select("whatsapp_number")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data?.whatsapp_number) {
+        setPhoneNumber(data.whatsapp_number);
+      }
+    } catch (error) {
+      console.error("Error fetching phone:", error);
+    }
   };
 
   const openWhatsApp = () => {
@@ -143,7 +91,7 @@ const Payment = () => {
     window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${message}`, '_blank');
   };
 
-  const handleSubmitDeposit = async () => {
+  const handleInitiateSTKPush = async () => {
     const amount = parseInt(depositAmount);
     
     if (!amount || amount < 100) {
@@ -155,44 +103,16 @@ const Payment = () => {
       return;
     }
 
-    if (!mpesaMessage.trim()) {
+    if (!phoneNumber.trim()) {
       toast({
-        title: "M-Pesa Message Required",
-        description: "Please paste your M-Pesa confirmation message",
+        title: "Phone Required",
+        description: "Please enter your M-Pesa phone number",
         variant: "destructive",
       });
       return;
     }
 
-    // Validate parsed message
-    if (!parsedMessage?.isValid) {
-      toast({
-        title: "Invalid Message",
-        description: "Please paste a valid M-Pesa confirmation message",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Verify amount matches
-    if (parsedMessage.amount && Math.abs(parsedMessage.amount - amount) > 1) {
-      toast({
-        title: "Amount Mismatch",
-        description: `The M-Pesa message shows KES ${parsedMessage.amount.toLocaleString()}, but you entered KES ${amount.toLocaleString()}. Please correct the amount.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Warn if till number doesn't match (but still allow)
-    if (!parsedMessage.recipient) {
-      const proceed = window.confirm(
-        `We couldn't verify the till number in your message. Please ensure you sent to Till ${TILL_NUMBER} (${BUSINESS_NAME}). Do you want to proceed?`
-      );
-      if (!proceed) return;
-    }
-
-    setPaymentStatus('submitting');
+    setPaymentStatus('initiating');
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -202,40 +122,97 @@ const Payment = () => {
         return;
       }
 
-      const transactionCode = parsedMessage.transactionCode || `DEP_${Date.now()}`;
+      const reference = `SAVE_${user.id.slice(0, 8)}_${Date.now()}`;
 
-      // Create deposit record (admin will verify)
-      const { error } = await supabase
-        .from("savings_deposits")
-        .insert({
-          user_id: user.id,
+      // Create pending deposit record
+      await supabase.from("savings_deposits").insert({
+        user_id: user.id,
+        amount: amount,
+        mpesa_message: `STK Push initiated: ${reference}`,
+        transaction_code: reference,
+        verified: false,
+      });
+
+      // Call PayHero STK Push edge function
+      const { data, error } = await supabase.functions.invoke('payhero-stk-push', {
+        body: {
+          phoneNumber: phoneNumber,
           amount: amount,
-          mpesa_message: mpesaMessage,
-          transaction_code: transactionCode,
-          verified: false, // Admin will verify
-        });
+          reference: reference,
+        },
+      });
 
       if (error) throw error;
 
-      setPaymentStatus('success');
-      setMpesaMessage("");
-      setDepositAmount("");
-      setParsedMessage(null);
+      if (data?.success) {
+        setPaymentReference(data.reference);
+        setPaymentStatus('waiting');
+        
+        toast({
+          title: "Check Your Phone!",
+          description: "Enter your M-Pesa PIN when prompted to complete payment.",
+        });
 
-      toast({
-        title: "Deposit Submitted!",
-        description: "Your deposit is pending verification. We'll update your balance shortly.",
-      });
+        // Start polling for payment confirmation
+        pollPaymentStatus(reference);
+      } else {
+        throw new Error(data?.error || 'Failed to initiate payment');
+      }
 
     } catch (error) {
-      console.error("Deposit error:", error);
+      console.error("STK Push error:", error);
       setPaymentStatus('failed');
       toast({
-        title: "Submission Failed",
+        title: "Payment Failed",
         description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     }
+  };
+
+  const pollPaymentStatus = async (reference: string) => {
+    let attempts = 0;
+    const maxAttempts = 30; // Poll for 60 seconds
+
+    const poll = async () => {
+      attempts++;
+      
+      try {
+        const { data } = await supabase
+          .from("savings_deposits")
+          .select("verified")
+          .eq("transaction_code", reference)
+          .maybeSingle();
+
+        if (data?.verified) {
+          setPaymentStatus('success');
+          fetchSavingsBalance();
+          toast({
+            title: "Payment Successful!",
+            description: "Your savings balance has been updated.",
+          });
+          return;
+        }
+
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 2000);
+        } else {
+          // Payment might still be processing
+          setPaymentStatus('idle');
+          toast({
+            title: "Payment Processing",
+            description: "If you completed the payment, your balance will update shortly. Check back in a few minutes.",
+          });
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 2000);
+        }
+      }
+    };
+
+    setTimeout(poll, 3000); // Start polling after 3 seconds
   };
 
   const handleProceedWithLoan = async () => {
@@ -321,7 +298,7 @@ const Payment = () => {
 
   const resetPayment = () => {
     setPaymentStatus('idle');
-    setParsedMessage(null);
+    setPaymentReference(null);
     fetchSavingsBalance();
   };
 
@@ -349,7 +326,7 @@ const Payment = () => {
             <CardDescription>
               {isLoanFlow 
                 ? "A small savings deposit unlocks your loan instantly"
-                : "Your savings journey starts here. Every shilling counts!"
+                : "Pay via M-Pesa STK Push - quick and secure!"
               }
             </CardDescription>
           </CardHeader>
@@ -393,9 +370,9 @@ const Payment = () => {
                   <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-green-700 dark:text-green-400">Deposit Submitted!</p>
+                  <p className="font-semibold text-green-700 dark:text-green-400">Payment Successful!</p>
                   <p className="text-sm text-green-600 dark:text-green-500 mt-1">
-                    Your deposit is pending verification by our team. We'll update your balance shortly.
+                    Your savings balance has been updated.
                   </p>
                 </div>
                 <Button variant="outline" size="sm" onClick={resetPayment}>
@@ -410,7 +387,7 @@ const Payment = () => {
                   <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-red-700 dark:text-red-400">Submission Failed</p>
+                  <p className="font-semibold text-red-700 dark:text-red-400">Payment Failed</p>
                   <p className="text-sm text-red-600 dark:text-red-500 mt-1">
                     Something went wrong. Please try again.
                   </p>
@@ -421,112 +398,53 @@ const Payment = () => {
               </div>
             )}
 
+            {/* Waiting for payment confirmation */}
+            {paymentStatus === 'waiting' && (
+              <div className="bg-primary/5 p-6 rounded-xl border-2 border-primary/20 text-center space-y-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-primary">Waiting for Payment</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Please check your phone and enter your M-Pesa PIN to complete the payment.
+                  </p>
+                  {paymentReference && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Reference: {paymentReference}
+                    </p>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" onClick={resetPayment}>
+                  Cancel
+                </Button>
+              </div>
+            )}
+
             {/* Show deposit form if idle and not enough savings OR not in loan flow */}
             {paymentStatus === 'idle' && (!hasSufficientSavings || !isLoanFlow) && (
               <>
-                {/* Payment Instructions */}
-                <div className="bg-primary/5 border-2 border-primary/20 p-5 rounded-xl space-y-4">
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-primary" />
-                    How to Deposit
-                  </h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
-                      <p>Open M-Pesa on your phone and select <strong>Lipa na M-Pesa</strong></p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
-                      <p>Select <strong>Buy Goods and Services</strong></p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
-                      <div className="flex-1">
-                        <p>Enter Till Number:</p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <div className="bg-card border-2 border-primary rounded-lg px-4 py-2 font-mono text-xl font-bold text-primary">
-                            {TILL_NUMBER}
-                          </div>
-                          <Button variant="outline" size="sm" onClick={copyTillNumber}>
-                            <Copy className="w-4 h-4 mr-1" />
-                            Copy
-                          </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">Business Name: {BUSINESS_NAME}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">4</span>
-                      <p>Enter the amount and complete the transaction</p>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">5</span>
-                      <p>Paste the M-Pesa confirmation message below</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* M-Pesa Message Input - First, so amount auto-fills */}
+                {/* Phone Number Input */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium">M-Pesa Confirmation Message</label>
-                  <Textarea
-                    placeholder="Paste your M-Pesa confirmation message here..."
-                    value={mpesaMessage}
-                    onChange={(e) => setMpesaMessage(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
+                  <label className="block text-sm font-medium">M-Pesa Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="tel"
+                      placeholder="0712345678"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Paste the full SMS you received from M-Pesa after payment
+                    You'll receive an M-Pesa prompt on this number
                   </p>
-                  
-                  {/* Parsed Message Feedback */}
-                  {parsedMessage && mpesaMessage.trim() && (
-                    <div className={`mt-3 p-3 rounded-lg border ${
-                      parsedMessage.isValid 
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
-                        : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
-                    }`}>
-                      <div className="flex items-start gap-2">
-                        {parsedMessage.isValid ? (
-                          <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                        ) : (
-                          <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
-                        )}
-                        <div className="text-sm space-y-1">
-                          {parsedMessage.transactionCode && (
-                            <p className="text-foreground">
-                              <strong>Transaction:</strong> {parsedMessage.transactionCode}
-                            </p>
-                          )}
-                          {parsedMessage.amount && (
-                            <p className="text-foreground">
-                              <strong>Amount:</strong> KES {parsedMessage.amount.toLocaleString()}
-                            </p>
-                          )}
-                          {parsedMessage.recipient ? (
-                            <p className="text-green-600 dark:text-green-400">
-                              <strong>Till Number:</strong> {parsedMessage.recipient} ✓
-                            </p>
-                          ) : parsedMessage.isValid && (
-                            <p className="text-yellow-600 dark:text-yellow-400 text-xs">
-                              Could not verify till number. Please ensure you sent to {TILL_NUMBER}
-                            </p>
-                          )}
-                          {!parsedMessage.isValid && (
-                            <p className="text-yellow-600 dark:text-yellow-400">
-                              Please paste a valid M-Pesa confirmation message
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Amount Input */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium">Amount Deposited (KES)</label>
+                  <label className="block text-sm font-medium">Deposit Amount (KES)</label>
                   <Input
                     type="number"
                     placeholder={isLoanFlow && !hasSufficientSavings 
@@ -537,36 +455,45 @@ const Payment = () => {
                     onChange={(e) => setDepositAmount(e.target.value)}
                     min={100}
                   />
-                  {parsedMessage?.amount && depositAmount && Math.abs(parsedMessage.amount - parseInt(depositAmount)) > 1 && (
-                    <p className="text-xs text-destructive flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      Amount doesn't match M-Pesa message (KES {parsedMessage.amount.toLocaleString()})
-                    </p>
-                  )}
+                </div>
+
+                {/* Quick amount buttons */}
+                <div className="flex flex-wrap gap-2">
+                  {[500, 1000, 2000, 5000].map((amount) => (
+                    <Button
+                      key={amount}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDepositAmount(amount.toString())}
+                      className={depositAmount === amount.toString() ? 'border-primary bg-primary/10' : ''}
+                    >
+                      KES {amount.toLocaleString()}
+                    </Button>
+                  ))}
                 </div>
 
                 <Button 
                   variant="cute" 
                   size="lg"
                   className="w-full"
-                  onClick={handleSubmitDeposit}
-                  disabled={!depositAmount || !mpesaMessage.trim() || !parsedMessage?.isValid}
+                  onClick={handleInitiateSTKPush}
+                  disabled={!depositAmount || !phoneNumber.trim()}
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Submit Deposit
+                  Pay via M-Pesa
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground">
-                  Your deposit will be verified by our team within a few minutes.
+                  You'll receive an M-Pesa prompt on your phone. Enter your PIN to complete payment.
                 </p>
               </>
             )}
 
-            {/* Show processing state */}
-            {paymentStatus === 'submitting' && (
+            {/* Show initiating state */}
+            {paymentStatus === 'initiating' && (
               <div className="flex flex-col items-center justify-center py-8 space-y-4">
                 <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Submitting your deposit...</p>
+                <p className="text-sm text-muted-foreground">Sending M-Pesa prompt to your phone...</p>
               </div>
             )}
 
