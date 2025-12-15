@@ -81,7 +81,6 @@ const Payment = () => {
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
-            console.log('Real-time payment update:', payload);
             const newRecord = payload.new as { verified: boolean; transaction_code: string; amount: number };
             
             // Check if this update matches our current payment reference
@@ -113,8 +112,7 @@ const Payment = () => {
             table: 'savings_deposits',
             filter: `user_id=eq.${user.id}`,
           },
-          (payload) => {
-            console.log('New deposit detected:', payload);
+          () => {
             // Refresh balance when new deposit is added
             fetchSavingsBalance();
           }
@@ -483,11 +481,6 @@ const Payment = () => {
                   <p className="text-sm text-muted-foreground mt-1">
                     Please check your phone and enter your M-Pesa PIN to complete the payment.
                   </p>
-                  {paymentReference && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Reference: {paymentReference}
-                    </p>
-                  )}
                 </div>
                 <Button variant="outline" size="sm" onClick={resetPayment}>
                   Cancel

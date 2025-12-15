@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     const { phoneNumber, amount, applicationId, reference } = await req.json();
 
-    console.log('PayHero STK Push request received:', { phoneNumber, amount, applicationId, reference });
+    console.log('PayHero STK Push request received:', { amount, hasPhone: !!phoneNumber, hasAppId: !!applicationId });
 
     // Validate input
     if (!phoneNumber || !amount) {
@@ -32,7 +32,7 @@ serve(async (req) => {
       formattedPhone = '254' + formattedPhone;
     }
 
-    console.log('Formatted phone:', formattedPhone);
+    console.log('Phone formatted successfully');
 
     // Get PayHero credentials
     const payheroApiKeyRaw = Deno.env.get('PAYHERO_API_KEY');
@@ -57,8 +57,7 @@ serve(async (req) => {
     }
     // If no colon, assume it's already base64 encoded or just the token
     
-    console.log('API Key length:', payheroApiKey.length);
-    console.log('Channel ID:', payheroChannelId);
+    console.log('API Key configured, length:', payheroApiKey.length);
 
     // Generate unique reference
     const txReference = reference || `MWANANCHI_${Date.now()}`;
@@ -73,8 +72,7 @@ serve(async (req) => {
       callback_url: `https://tflvmwotbqrckywnuexd.supabase.co/functions/v1/payhero-callback`
     };
 
-    console.log('PayHero STK payload:', stkPayload);
-    console.log('Using auth header (masked):', authHeader.substring(0, 10) + '...');
+    console.log('PayHero STK payload prepared, amount:', stkPayload.amount);
 
     // Send STK Push request to PayHero
     const stkResponse = await fetch('https://backend.payhero.co.ke/api/v2/payments', {
@@ -86,8 +84,9 @@ serve(async (req) => {
       body: JSON.stringify(stkPayload),
     });
 
+
     const stkResult = await stkResponse.json();
-    console.log('PayHero STK response:', stkResult);
+    console.log('PayHero STK response received, success:', stkResponse.ok);
 
     if (!stkResponse.ok) {
       throw new Error(stkResult.message || stkResult.error || 'Failed to initiate STK Push');
