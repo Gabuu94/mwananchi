@@ -21,53 +21,47 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // PayHero callback structure
-    const {
-      status,
-      external_reference,
-      provider_reference,
-      amount,
-      phone_number
-    } = payload;
+    // PayHero callback structure - the actual payment data is in the response object
+    const response = payload.response || payload;
+    const status = response.Status || response.status;
+    const externalReference = response.ExternalReference || response.external_reference || payload.external_reference;
+    const providerReference = response.MpesaReceiptNumber || response.provider_reference;
+    const amount = response.Amount || response.amount;
+    const resultDesc = response.ResultDesc || response.result_desc || '';
 
-    const isSuccess = status === 'SUCCESS' || status === 'SUCCESSFUL';
+    console.log('Parsed callback data:', { status, externalReference, providerReference, amount, resultDesc });
 
-    if (isSuccess) {
-      console.log('Payment successful:', { external_reference, provider_reference, amount });
+    if (!externalReference) {
+      console.error('No external reference found in callback');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing external reference' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-      // Update loan_disbursements if this was a loan payment
-      const { data: disbursement, error: disbursementError } = await supabase
-        .from('loan_disbursements')
-        .update({
-          payment_verified: true,
-          transaction_code: provider_reference || external_reference,
-        })
-        .eq('transaction_code', external_reference)
-        .select()
-        .single();
+    // Check if payment was successful - PayHero uses "Success" or "Successful" status
+    const isSuccess = status === 'Success' || status === 'Successful' || status === 'SUCCESS' || status === 'SUCCESSFUL';
+    const isFailed = status === 'Failed' || status === 'FAILED' || status === 'Cancelled' || status === 'CANCELLED';
 
-      if (disbursement && !disbursementError) {
-        // Update the associated loan application to approved
-        await supabase
-          .from('loan_applications')
-          .update({ status: 'approved' })
-          .eq('id', disbursement.application_id);
+    console.log('Payment status check:', { isSuccess, isFailed, originalStatus: status });
 
-        console.log('Loan application approved for:', disbursement.application_id);
-      }
+    if (isSuccess && amount > 0) {
+      console.log('Payment successful:', { externalReference, providerReference, amount });
 
-      // Check if this is a savings deposit
+      // Update savings_deposits - set verified to true
       const { data: deposit, error: depositError } = await supabase
         .from('savings_deposits')
         .update({
           verified: true,
-          transaction_code: provider_reference || external_reference,
+          transaction_code: providerReference || externalReference,
         })
-        .eq('transaction_code', external_reference)
+        .eq('transaction_code', externalReference)
         .select()
         .single();
 
       if (deposit && !depositError) {
+        console.log('Deposit verified:', deposit);
+        
         // Update user savings balance
         const { data: existingSavings } = await supabase
           .from('user_savings')
@@ -78,24 +72,63 @@ serve(async (req) => {
         if (existingSavings) {
           await supabase
             .from('user_savings')
-            .update({ balance: existingSavings.balance + deposit.amount })
+            .update({ 
+              balance: existingSavings.balance + deposit.amount,
+              updated_at: new Date().toISOString()
+            })
             .eq('user_id', deposit.user_id);
+          console.log('Savings balance updated for user:', deposit.user_id);
         } else {
           await supabase
             .from('user_savings')
             .insert({ user_id: deposit.user_id, balance: deposit.amount });
+          console.log('New savings record created for user:', deposit.user_id);
         }
-
-        console.log('Savings deposit verified for user:', deposit.user_id);
+      } else {
+        console.log('Deposit update result:', { deposit, depositError });
       }
-    } else {
-      console.log('Payment failed or pending:', { status, external_reference });
 
-      // Update disbursement as failed
+      // Also check loan_disbursements
+      const { data: disbursement, error: disbursementError } = await supabase
+        .from('loan_disbursements')
+        .update({
+          payment_verified: true,
+          transaction_code: providerReference || externalReference,
+        })
+        .eq('transaction_code', externalReference)
+        .select()
+        .single();
+
+      if (disbursement && !disbursementError) {
+        await supabase
+          .from('loan_applications')
+          .update({ status: 'approved' })
+          .eq('id', disbursement.application_id);
+        console.log('Loan application approved for:', disbursement.application_id);
+      }
+
+    } else if (isFailed) {
+      console.log('Payment failed:', { status, externalReference, resultDesc });
+
+      // Mark deposit as not verified (failed)
+      const { error: updateError } = await supabase
+        .from('savings_deposits')
+        .update({ verified: false })
+        .eq('transaction_code', externalReference);
+      
+      if (updateError) {
+        console.error('Error updating failed deposit:', updateError);
+      } else {
+        console.log('Deposit marked as failed for:', externalReference);
+      }
+
+      // Also update loan disbursements if applicable
       await supabase
         .from('loan_disbursements')
         .update({ payment_verified: false })
-        .eq('transaction_code', external_reference);
+        .eq('transaction_code', externalReference);
+    } else {
+      console.log('Payment pending or unknown status:', { status, externalReference });
     }
 
     return new Response(
