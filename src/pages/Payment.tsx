@@ -26,15 +26,6 @@ const Payment = () => {
   // Check if this is a loan disbursement flow or just savings deposit
   const isLoanFlow = loanAmount !== null && loanAmount > 0;
 
-  useEffect(() => {
-    const amount = localStorage.getItem("selectedLoanAmount");
-    if (amount) {
-      setLoanAmount(parseInt(amount));
-    }
-    fetchSavingsBalance();
-    fetchUserPhone();
-  }, []);
-
   const fetchSavingsBalance = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -63,6 +54,84 @@ const Payment = () => {
       setIsLoading(false);
     }
   }, [navigate]);
+
+  useEffect(() => {
+    const amount = localStorage.getItem("selectedLoanAmount");
+    if (amount) {
+      setLoanAmount(parseInt(amount));
+    }
+    fetchSavingsBalance();
+    fetchUserPhone();
+  }, [fetchSavingsBalance]);
+
+  // Real-time subscription for payment updates
+  useEffect(() => {
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel('payment-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'savings_deposits',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log('Real-time payment update:', payload);
+            const newRecord = payload.new as { verified: boolean; transaction_code: string; amount: number };
+            
+            // Check if this update matches our current payment reference
+            if (paymentReference && newRecord.transaction_code === paymentReference) {
+              if (newRecord.verified === true) {
+                setPaymentStatus('success');
+                fetchSavingsBalance();
+                toast({
+                  title: "Payment Successful!",
+                  description: `KES ${newRecord.amount.toLocaleString()} has been added to your savings.`,
+                });
+              } else if (newRecord.verified === false && paymentStatus === 'waiting') {
+                // Payment was explicitly marked as failed
+                setPaymentStatus('failed');
+                toast({
+                  title: "Payment Failed",
+                  description: "The transaction was not completed. Please try again.",
+                  variant: "destructive",
+                });
+              }
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'savings_deposits',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log('New deposit detected:', payload);
+            // Refresh balance when new deposit is added
+            fetchSavingsBalance();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    const cleanup = setupRealtimeSubscription();
+    
+    return () => {
+      cleanup.then((cleanupFn) => cleanupFn?.());
+    };
+  }, [paymentReference, paymentStatus, toast, fetchSavingsBalance]);
 
   const fetchUserPhone = async () => {
     try {
@@ -170,11 +239,17 @@ const Payment = () => {
     }
   };
 
+  // Fallback polling with shorter duration since we have real-time updates
   const pollPaymentStatus = async (reference: string) => {
     let attempts = 0;
-    const maxAttempts = 30; // Poll for 60 seconds
+    const maxAttempts = 60; // Poll for 2 minutes as backup
 
     const poll = async () => {
+      // Stop polling if payment already succeeded/failed via real-time
+      if (paymentStatus === 'success' || paymentStatus === 'failed') {
+        return;
+      }
+      
       attempts++;
       
       try {
@@ -184,7 +259,7 @@ const Payment = () => {
           .eq("transaction_code", reference)
           .maybeSingle();
 
-        if (data?.verified) {
+        if (data?.verified === true) {
           setPaymentStatus('success');
           fetchSavingsBalance();
           toast({
@@ -194,25 +269,24 @@ const Payment = () => {
           return;
         }
 
-        if (attempts < maxAttempts) {
+        if (attempts < maxAttempts && paymentStatus === 'waiting') {
           setTimeout(poll, 2000);
-        } else {
+        } else if (attempts >= maxAttempts) {
           // Payment might still be processing
-          setPaymentStatus('idle');
           toast({
-            title: "Payment Processing",
-            description: "If you completed the payment, your balance will update shortly. Check back in a few minutes.",
+            title: "Still Processing",
+            description: "Your payment is being processed. The page will update automatically when complete.",
           });
         }
       } catch (error) {
         console.error("Polling error:", error);
-        if (attempts < maxAttempts) {
+        if (attempts < maxAttempts && paymentStatus === 'waiting') {
           setTimeout(poll, 2000);
         }
       }
     };
 
-    setTimeout(poll, 3000); // Start polling after 3 seconds
+    setTimeout(poll, 3000);
   };
 
   const handleProceedWithLoan = async () => {
