@@ -53,7 +53,9 @@ serve(async (req) => {
         .from('savings_deposits')
         .update({
           verified: true,
-          transaction_code: providerReference || externalReference,
+          mpesa_message: providerReference
+            ? `M-Pesa receipt: ${providerReference}`
+            : 'Payment successful',
         })
         .eq('transaction_code', externalReference)
         .select()
@@ -93,7 +95,6 @@ serve(async (req) => {
         .from('loan_disbursements')
         .update({
           payment_verified: true,
-          transaction_code: providerReference || externalReference,
         })
         .eq('transaction_code', externalReference)
         .select()
@@ -113,7 +114,10 @@ serve(async (req) => {
       // Mark deposit as not verified (failed)
       const { error: updateError } = await supabase
         .from('savings_deposits')
-        .update({ verified: false })
+        .update({
+          verified: false,
+          mpesa_message: resultDesc ? `Failed: ${resultDesc}` : 'Failed',
+        })
         .eq('transaction_code', externalReference);
       
       if (updateError) {

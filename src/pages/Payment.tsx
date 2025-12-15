@@ -214,9 +214,9 @@ const Payment = () => {
       if (error) throw error;
 
       if (data?.success) {
-        setPaymentReference(data.reference);
+        // Track our own reference (stored in DB) so real-time updates match immediately
+        setPaymentReference(reference);
         setPaymentStatus('waiting');
-        
         toast({
           title: "Check Your Phone!",
           description: "Enter your M-Pesa PIN when prompted to complete payment.",
