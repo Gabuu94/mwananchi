@@ -25,7 +25,7 @@ const Landing = () => {
 
           {/* Tagline */}
           <div className="space-y-4">
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight">
+            <h1 className="text-4xl md:text-6xl font-display font-extrabold text-primary leading-tight">
               Fast, Friendly, and Reliable Loans for Everyone!
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
