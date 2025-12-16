@@ -17,18 +17,19 @@ const LoanSelection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const MIN_LOAN = 2000;
+  
   // Calculate required savings based on loan amount (100 to 1500 range)
   const calculateRequiredSavings = (loanAmount: number): number => {
-    const minLoan = 1000;
     const maxLoan = loanLimit || 30000;
     const minSavings = 100;
     const maxSavings = 1500;
     
-    if (loanAmount <= minLoan) return minSavings;
+    if (loanAmount <= MIN_LOAN) return minSavings;
     if (loanAmount >= maxLoan) return maxSavings;
     
     // Linear interpolation between min and max
-    const ratio = (loanAmount - minLoan) / (maxLoan - minLoan);
+    const ratio = (loanAmount - MIN_LOAN) / (maxLoan - MIN_LOAN);
     return Math.round(minSavings + ratio * (maxSavings - minSavings));
   };
 
@@ -75,10 +76,10 @@ const LoanSelection = () => {
   };
 
   const handleProceed = () => {
-    if (selectedAmount < 1000) {
+    if (selectedAmount < MIN_LOAN) {
       toast({
         title: "Amount Too Low",
-        description: "Minimum loan amount is KES 1,000",
+        description: `Minimum loan amount is KES ${MIN_LOAN.toLocaleString()}`,
         variant: "destructive",
       });
       return;
@@ -266,7 +267,7 @@ const LoanSelection = () => {
           size="lg"
           className="w-full mb-8"
           onClick={handleProceed}
-          disabled={selectedAmount < 1000}
+          disabled={selectedAmount < MIN_LOAN}
         >
           <span>{hasSufficientSavings ? "Proceed to Disbursement" : "Proceed to Fund Savings"}</span>
           <ArrowRight className="w-5 h-5 ml-2" />
