@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 
-const MIN_SAVINGS_BALANCE = 300;
+const DEFAULT_MIN_SAVINGS = 300;
 const SUPPORT_WHATSAPP = "254746277428";
 
 type PaymentStatus = 'idle' | 'initiating' | 'waiting' | 'success' | 'failed';
@@ -15,6 +15,7 @@ type PaymentStatus = 'idle' | 'initiating' | 'waiting' | 'success' | 'failed';
 const Payment = () => {
   const [loanAmount, setLoanAmount] = useState<number | null>(null);
   const [savingsBalance, setSavingsBalance] = useState<number | null>(null);
+  const [minSavingsBalance, setMinSavingsBalance] = useState(DEFAULT_MIN_SAVINGS);
   const [isLoading, setIsLoading] = useState(true);
   const [depositAmount, setDepositAmount] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -59,6 +60,10 @@ const Payment = () => {
     const amount = localStorage.getItem("selectedLoanAmount");
     if (amount) {
       setLoanAmount(parseInt(amount));
+    }
+    const requiredSavings = localStorage.getItem("requiredSavings");
+    if (requiredSavings) {
+      setMinSavingsBalance(parseInt(requiredSavings));
     }
     fetchSavingsBalance();
     fetchUserPhone();
@@ -288,10 +293,10 @@ const Payment = () => {
   };
 
   const handleProceedWithLoan = async () => {
-    if (savingsBalance === null || savingsBalance < MIN_SAVINGS_BALANCE) {
+    if (savingsBalance === null || savingsBalance < minSavingsBalance) {
       toast({
         title: "Insufficient Savings",
-        description: `You need at least KES ${MIN_SAVINGS_BALANCE} in savings to proceed`,
+        description: `You need at least KES ${minSavingsBalance.toLocaleString()} in savings to proceed`,
         variant: "destructive",
       });
       return;
@@ -374,7 +379,7 @@ const Payment = () => {
     fetchSavingsBalance();
   };
 
-  const hasSufficientSavings = savingsBalance !== null && savingsBalance >= MIN_SAVINGS_BALANCE;
+  const hasSufficientSavings = savingsBalance !== null && savingsBalance >= minSavingsBalance;
 
   if (isLoading) {
     return (
@@ -419,7 +424,7 @@ const Payment = () => {
                       <span className="text-sm">Ready for your loan!</span>
                     </>
                   ) : (
-                    <span className="text-sm opacity-80">Add KES {MIN_SAVINGS_BALANCE - (savingsBalance || 0)} more to unlock</span>
+                    <span className="text-sm opacity-80">Add KES {(minSavingsBalance - (savingsBalance || 0)).toLocaleString()} more to unlock</span>
                   )}
                 </div>
               )}
@@ -515,7 +520,7 @@ const Payment = () => {
                   <Input
                     type="number"
                     placeholder={isLoanFlow && !hasSufficientSavings 
-                      ? `Minimum KES ${MIN_SAVINGS_BALANCE - (savingsBalance || 0)}` 
+                      ? `Minimum KES ${(minSavingsBalance - (savingsBalance || 0)).toLocaleString()}` 
                       : "Enter amount (min KES 100)"
                     }
                     value={depositAmount}
