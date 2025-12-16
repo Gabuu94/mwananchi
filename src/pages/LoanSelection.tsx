@@ -260,6 +260,9 @@ const LoanSelection = () => {
             <p className="text-xs text-muted-foreground mt-1">
               Required savings: KES 100 - 1,500 based on loan amount
             </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 italic">
+              *Disclaimer: Savings deposited for loan qualification purposes are fully refundable upon successful repayment of the loan facility.
+            </p>
           </div>
         </div>
 
