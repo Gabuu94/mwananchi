@@ -17,6 +17,23 @@ const LoanSelection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Calculate required savings based on loan amount (100 to 1500 range)
+  const calculateRequiredSavings = (loanAmount: number): number => {
+    const minLoan = 1000;
+    const maxLoan = loanLimit || 30000;
+    const minSavings = 100;
+    const maxSavings = 1500;
+    
+    if (loanAmount <= minLoan) return minSavings;
+    if (loanAmount >= maxLoan) return maxSavings;
+    
+    // Linear interpolation between min and max
+    const ratio = (loanAmount - minLoan) / (maxLoan - minLoan);
+    return Math.round(minSavings + ratio * (maxSavings - minSavings));
+  };
+
+  const requiredSavings = calculateRequiredSavings(selectedAmount);
+
   useEffect(() => {
     const limit = localStorage.getItem("mwananchiLoanLimit");
     if (!limit) {
@@ -68,6 +85,7 @@ const LoanSelection = () => {
     }
 
     localStorage.setItem("selectedLoanAmount", selectedAmount.toString());
+    localStorage.setItem("requiredSavings", requiredSavings.toString());
     navigate("/payment");
   };
 
@@ -77,7 +95,7 @@ const LoanSelection = () => {
     { icon: FileText, label: "History", active: false, onClick: () => navigate("/dashboard", { state: { scrollToHistory: true } }) },
   ];
 
-  const hasSufficientSavings = savingsBalance >= 300;
+  const hasSufficientSavings = savingsBalance >= requiredSavings;
 
   return (
     <div className="min-h-screen bg-background">
@@ -206,6 +224,10 @@ const LoanSelection = () => {
                 <span className="text-muted-foreground">Loan Amount</span>
                 <span className="font-semibold">KES {selectedAmount.toLocaleString()}</span>
               </div>
+              <div className="flex justify-between items-center py-2 border-b border-border/50">
+                <span className="text-muted-foreground">Required Savings</span>
+                <span className="font-semibold text-primary">KES {requiredSavings.toLocaleString()}</span>
+              </div>
               <div className="flex justify-between items-center py-2">
                 <span className="font-semibold">You'll Receive</span>
                 <span className="font-bold text-xl text-primary">KES {selectedAmount.toLocaleString()}</span>
@@ -228,10 +250,13 @@ const LoanSelection = () => {
               </p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                You need at least <strong>KES 300</strong> in savings to proceed with disbursement. 
+                You need at least <strong>KES {requiredSavings.toLocaleString()}</strong> in savings for this loan amount. 
                 Current balance: <strong>KES {savingsBalance.toLocaleString()}</strong>
               </p>
             )}
+            <p className="text-xs text-muted-foreground mt-1">
+              Required savings: KES 100 - 1,500 based on loan amount
+            </p>
           </div>
         </div>
 
