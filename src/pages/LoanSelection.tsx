@@ -11,7 +11,7 @@ import mwananchiLogo from "@/assets/mwananchi-credit-logo.png";
 
 const LoanSelection = () => {
   const [loanLimit, setLoanLimit] = useState(0);
-  const [selectedAmount, setSelectedAmount] = useState(0);
+  const [selectedAmount, setSelectedAmount] = useState(2000);
   const [showBalance, setShowBalance] = useState(true);
   const [savingsBalance, setSavingsBalance] = useState(0);
   const navigate = useNavigate();
@@ -44,7 +44,7 @@ const LoanSelection = () => {
     
     const limitAmount = parseInt(limit);
     setLoanLimit(limitAmount);
-    setSelectedAmount(Math.floor(limitAmount / 2));
+    setSelectedAmount(Math.max(Math.floor(limitAmount / 2), MIN_LOAN));
     
     fetchSavingsBalance();
   }, [navigate]);
@@ -69,9 +69,11 @@ const LoanSelection = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 0;
-    if (value <= loanLimit) {
+    const value = parseInt(e.target.value) || MIN_LOAN;
+    if (value >= MIN_LOAN && value <= loanLimit) {
       setSelectedAmount(value);
+    } else if (value < MIN_LOAN) {
+      setSelectedAmount(MIN_LOAN);
     }
   };
 
@@ -177,7 +179,7 @@ const LoanSelection = () => {
                 value={selectedAmount}
                 onChange={handleInputChange}
                 max={loanLimit}
-                min={0}
+                min={MIN_LOAN}
                 className="text-3xl font-bold h-16 text-center border-0 bg-transparent focus-visible:ring-0"
               />
             </div>
@@ -188,12 +190,12 @@ const LoanSelection = () => {
                 value={[selectedAmount]}
                 onValueChange={handleSliderChange}
                 max={loanLimit}
-                min={0}
+                min={MIN_LOAN}
                 step={100}
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>KES 0</span>
+                <span>KES {MIN_LOAN.toLocaleString()}</span>
                 <span>KES {loanLimit.toLocaleString()}</span>
               </div>
             </div>
