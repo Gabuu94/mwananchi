@@ -374,7 +374,7 @@ const Dashboard = () => {
                   <DollarSign className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Apply for New Loan</h3>
+                  <h3 className="font-bold text-lg">Apply for New Loan</h3>
                   <p className="text-sm text-muted-foreground">Start a new loan application</p>
                 </div>
               </div>
