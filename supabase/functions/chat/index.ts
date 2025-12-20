@@ -44,7 +44,7 @@ SAVINGS & DEPOSITS:
 - Users deposit via M-Pesa Buy Goods to Till Number: 8071464 (FINTECH HUB VENTURES 3)
 - After deposit, paste the M-Pesa confirmation message in the app
 - Admin verifies the deposit
-- Minimum KES 300 savings required before loan disbursement
+- Minimum KES 100 savings required before loan disbursement
 - Withdrawals available after first loan is repaid
 
 LOAN REPAYMENT:
@@ -53,14 +53,14 @@ LOAN REPAYMENT:
 - Timely repayment improves loan limit for future loans
 
 SAVINGS REQUIREMENT:
-- Minimum savings of KES 300 required before loan disbursement
+- Minimum savings of KES 100 required before loan disbursement
 - Interest rates are competitive and disclosed before accepting the loan
 - No hidden charges
 
 SUPPORT:
 - For account-specific issues, transaction problems, or urgent matters, users should click "Talk to Support" to reach a human agent
 - Support email: support@mwananchicredit.co.ke
-- WhatsApp/Phone support: 0746277428
+- WhatsApp/Phone support: +1 (760) 813-3694
 - M-Pesa Till Number: 8071464
 
 GUIDELINES:

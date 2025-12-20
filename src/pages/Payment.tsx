@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 
 const DEFAULT_MIN_SAVINGS = 100;
-const SUPPORT_WHATSAPP = "254746277428";
+const SUPPORT_WHATSAPP = "17608133694";
 
 type PaymentStatus = 'idle' | 'initiating' | 'waiting' | 'success' | 'failed';
 
