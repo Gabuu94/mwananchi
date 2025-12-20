@@ -4,47 +4,43 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { useNavigate } from "react-router-dom";
-import { Banknote, CreditCard, PiggyBank, FileText, ArrowRight, Info, Eye, EyeOff, Wallet } from "lucide-react";
+import { Banknote, CreditCard, PiggyBank, FileText, ArrowRight, Info, Eye, EyeOff, Wallet, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import mwananchiLogo from "@/assets/mwananchi-credit-logo.png";
+import helaPesaLogo from "@/assets/mwananchi-credit-logo.png";
+
+const MIN_LOAN_AMOUNT = 2000;
+const MAX_LOAN_AMOUNT = 30000;
+const MIN_SAVINGS = 100;
+const MAX_SAVINGS = 1500;
+
+// Calculate required savings based on loan amount (100 for 2000 KES, up to 1500 for 30000 KES)
+const calculateRequiredSavings = (loanAmount: number): number => {
+  if (loanAmount <= MIN_LOAN_AMOUNT) return MIN_SAVINGS;
+  if (loanAmount >= MAX_LOAN_AMOUNT) return MAX_SAVINGS;
+  return Math.ceil(MIN_SAVINGS + ((loanAmount - MIN_LOAN_AMOUNT) / (MAX_LOAN_AMOUNT - MIN_LOAN_AMOUNT)) * (MAX_SAVINGS - MIN_SAVINGS));
+};
 
 const LoanSelection = () => {
   const [loanLimit, setLoanLimit] = useState(0);
-  const [selectedAmount, setSelectedAmount] = useState(2000);
+  const [selectedAmount, setSelectedAmount] = useState(0);
   const [showBalance, setShowBalance] = useState(true);
   const [savingsBalance, setSavingsBalance] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const MIN_LOAN = 2000;
-  
-  // Calculate required savings based on loan amount (100 to 1500 range)
-  const calculateRequiredSavings = (loanAmount: number): number => {
-    const maxLoan = loanLimit || 30000;
-    const minSavings = 100;
-    const maxSavings = 1500;
-    
-    if (loanAmount <= MIN_LOAN) return minSavings;
-    if (loanAmount >= maxLoan) return maxSavings;
-    
-    // Linear interpolation between min and max
-    const ratio = (loanAmount - MIN_LOAN) / (maxLoan - MIN_LOAN);
-    return Math.round(minSavings + ratio * (maxSavings - minSavings));
-  };
-
-  const requiredSavings = calculateRequiredSavings(selectedAmount);
-
   useEffect(() => {
-    const limit = localStorage.getItem("mwananchiLoanLimit");
+    // support either storage key (kept for backward compatibility)
+    const limit = localStorage.getItem("mwananchicreditLimit") || localStorage.getItem("mwananchiLoanLimit");
     if (!limit) {
       navigate("/application");
       return;
     }
-    
+
     const limitAmount = parseInt(limit);
     setLoanLimit(limitAmount);
-    setSelectedAmount(Math.max(Math.floor(limitAmount / 2), MIN_LOAN));
+    // Default to minimum loan amount or half of limit, whichever is greater
+    setSelectedAmount(Math.max(MIN_LOAN_AMOUNT, Math.floor(limitAmount / 2)));
     
     fetchSavingsBalance();
   }, [navigate]);
@@ -69,28 +65,28 @@ const LoanSelection = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || MIN_LOAN;
-    if (value >= MIN_LOAN && value <= loanLimit) {
+    const value = parseInt(e.target.value) || 0;
+    if (value <= loanLimit) {
       setSelectedAmount(value);
-    } else if (value < MIN_LOAN) {
-      setSelectedAmount(MIN_LOAN);
     }
   };
 
   const handleProceed = () => {
-    if (selectedAmount < MIN_LOAN) {
+    if (selectedAmount < MIN_LOAN_AMOUNT) {
       toast({
         title: "Amount Too Low",
-        description: `Minimum loan amount is KES ${MIN_LOAN.toLocaleString()}`,
+        description: `Minimum loan amount is KES ${MIN_LOAN_AMOUNT.toLocaleString()}`,
         variant: "destructive",
       });
       return;
     }
 
     localStorage.setItem("selectedLoanAmount", selectedAmount.toString());
-    localStorage.setItem("requiredSavings", requiredSavings.toString());
     navigate("/payment");
   };
+
+  const requiredSavings = calculateRequiredSavings(selectedAmount);
+  const hasSufficientSavings = savingsBalance >= requiredSavings;
 
   const quickActions = [
     { icon: PiggyBank, label: "Savings", active: false, onClick: () => navigate("/payment") },
@@ -98,17 +94,24 @@ const LoanSelection = () => {
     { icon: FileText, label: "History", active: false, onClick: () => navigate("/dashboard", { state: { scrollToHistory: true } }) },
   ];
 
-  const hasSufficientSavings = savingsBalance >= requiredSavings;
+  
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Gradient Header Section */}
       <div className="bg-gradient-to-br from-primary via-primary to-primary/80 rounded-b-[2.5rem] pb-8 pt-6 px-4">
         {/* Top Bar */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate("/dashboard")}
+              className="text-white hover:bg-white/20"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
-              <img src={mwananchiLogo} alt="Mwananchi Credit" className="w-full h-full object-cover" />
+              <img src={helaPesaLogo} alt="Hela Pesa" className="w-full h-full object-cover" />
             </div>
             <div className="text-white">
               <p className="text-sm opacity-80">Welcome,</p>
@@ -179,7 +182,7 @@ const LoanSelection = () => {
                 value={selectedAmount}
                 onChange={handleInputChange}
                 max={loanLimit}
-                min={MIN_LOAN}
+                min={MIN_LOAN_AMOUNT}
                 className="text-3xl font-bold h-16 text-center border-0 bg-transparent focus-visible:ring-0"
               />
             </div>
@@ -190,12 +193,12 @@ const LoanSelection = () => {
                 value={[selectedAmount]}
                 onValueChange={handleSliderChange}
                 max={loanLimit}
-                min={MIN_LOAN}
+                min={MIN_LOAN_AMOUNT}
                 step={100}
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>KES {MIN_LOAN.toLocaleString()}</span>
+                <span>KES {MIN_LOAN_AMOUNT.toLocaleString()}</span>
                 <span>KES {loanLimit.toLocaleString()}</span>
               </div>
             </div>
@@ -229,7 +232,7 @@ const LoanSelection = () => {
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border/50">
                 <span className="text-muted-foreground">Required Savings</span>
-                <span className="font-semibold text-primary">KES {requiredSavings.toLocaleString()}</span>
+                <span className="font-semibold">KES {requiredSavings.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center py-2">
                 <span className="font-semibold">You'll Receive</span>
@@ -253,16 +256,10 @@ const LoanSelection = () => {
               </p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                You need at least <strong>KES {requiredSavings.toLocaleString()}</strong> in savings for this loan amount. 
+                You need at least <strong>KES {requiredSavings.toLocaleString()}</strong> in savings for a loan of KES {selectedAmount.toLocaleString()}. 
                 Current balance: <strong>KES {savingsBalance.toLocaleString()}</strong>
               </p>
             )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Required savings: KES 100 - 1,500 based on loan amount
-            </p>
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 italic">
-              *Disclaimer: Savings deposited for loan qualification purposes are fully refundable upon successful repayment of the loan facility.
-            </p>
           </div>
         </div>
 
@@ -272,7 +269,7 @@ const LoanSelection = () => {
           size="lg"
           className="w-full mb-8"
           onClick={handleProceed}
-          disabled={selectedAmount < MIN_LOAN}
+          disabled={selectedAmount < MIN_LOAN_AMOUNT}
         >
           <span>{hasSufficientSavings ? "Proceed to Disbursement" : "Proceed to Fund Savings"}</span>
           <ArrowRight className="w-5 h-5 ml-2" />

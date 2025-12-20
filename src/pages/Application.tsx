@@ -194,10 +194,13 @@ const Application = () => {
 
         // Store application ID and loan limit in localStorage for next steps
         localStorage.setItem("currentApplicationId", application.id);
+        // keep existing key for compatibility and also set the key the loan selection page expects
         localStorage.setItem("mwananchiLoanLimit", loanLimit.toString());
+        localStorage.setItem("mwananchicreditLimit", loanLimit.toString());
         
         setIsLoading(false);
-        navigate("/loan-limit");
+        // Redirect user straight to loan selection so they can pick an amount immediately
+        navigate("/loan-selection");
       }, 30000); // 30 seconds
     } catch (error) {
       console.error("Error:", error);
