@@ -181,7 +181,7 @@ const Terms = () => {
               <div className="space-y-3">
                 <h4 className="font-semibold text-primary">7. SAVINGS, INTEREST AND FEES</h4>
                 <div className="space-y-2 pl-4 text-muted-foreground">
-                  <p>7.1 A minimum savings balance of KES 300 is required before loan disbursement. Savings are withdrawable after your first loan has been repaid.</p>
+                  <p>7.1 A minimum savings balance of KES 100 is required before loan disbursement. Savings are withdrawable after your first loan has been repaid.</p>
                   <p>7.2 The interest payable shall be displayed on the App. Mwananchi Credit may charge Transaction Fees which are subject to change.</p>
                   <p>7.3 All payments shall be made in full without any set off or counter claim.</p>
                   <p>7.4 If you fail to make payments at the due date, late payment charges will apply.</p>

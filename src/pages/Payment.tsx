@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 
-const DEFAULT_MIN_SAVINGS = 300;
+const DEFAULT_MIN_SAVINGS = 100;
 const SUPPORT_WHATSAPP = "254746277428";
 
 type PaymentStatus = 'idle' | 'initiating' | 'waiting' | 'success' | 'failed';
